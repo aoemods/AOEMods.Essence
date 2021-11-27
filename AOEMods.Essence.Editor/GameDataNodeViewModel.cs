@@ -1,10 +1,10 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using AOEMods.Essence.Chunky.RGD;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using AOEMods.Essence.Chunky.RGD;
 
 namespace AOEMods.Essence.Editor;
 

@@ -84,7 +84,6 @@ public class ArchiveReader : BinaryReader
 
         BaseStream.Seek((long)blobOffset, SeekOrigin.Begin);
 
-
         uint tocDataOffset = ReadUInt32();
         uint tocDataCount = ReadUInt32();
         uint folderDataOffset = ReadUInt32();
@@ -181,21 +180,33 @@ public class ArchiveReader : BinaryReader
     {
         ArchiveEntries archive = ReadArchiveEntries();
 
-        IArchiveTocNode FromTocEntry(ArchiveTocEntry tocEntry, IArchiveNode? parent)
+        IArchiveToc FromTocEntry(ArchiveTocEntry tocEntry, IArchiveNode? parent)
         {
-            var tocNode = new ArchiveTocNode(tocEntry.Name);
+            var folderEntry = archive.Folders[(int)tocEntry.FolderRootIndex];
 
-            for (uint folderIndex = tocEntry.FolderStartIndex; folderIndex < tocEntry.FolderEndIndex; folderIndex++)
+            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
+            string name = ReadCString();
+            int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
+            if (lastSeparatorIndex >= 0)
             {
-                tocNode.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], tocNode));
+                name = name.Substring(lastSeparatorIndex + 1);
             }
 
-            for (uint fileIndex = tocEntry.FileStartIndex; fileIndex < tocEntry.FileEndIndex; fileIndex++)
+            var rootFolder = new ArchiveFolderNode(name, parent: parent);
+
+            for (uint folderIndex = folderEntry.FolderStartIndex; folderIndex < folderEntry.FolderEndIndex; folderIndex++)
             {
-                tocNode.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], tocNode));
+                rootFolder.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], rootFolder));
             }
 
-            return tocNode;
+            for (uint fileIndex = folderEntry.FileStartIndex; fileIndex < folderEntry.FileEndIndex; fileIndex++)
+            {
+                rootFolder.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], rootFolder));
+            }
+
+            var toc = new ArchiveToc(tocEntry.Name, tocEntry.Alias, rootFolder);
+
+            return toc;
         }
 
         IArchiveFolderNode FromFolderEntry(ArchiveFolderEntry folderEntry, IArchiveNode? parent)

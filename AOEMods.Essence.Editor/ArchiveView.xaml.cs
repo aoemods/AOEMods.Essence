@@ -1,19 +1,10 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using AOEMods.Essence.SGA;
+using Microsoft.Toolkit.Mvvm.Messaging;
+using Microsoft.Win32;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using AOEMods.Essence.SGA;
 
 namespace AOEMods.Essence.Editor
 {
@@ -26,7 +17,6 @@ namespace AOEMods.Essence.Editor
 
         public ArchiveView()
         {
-            DataContext = new ArchiveViewModel();
             InitializeComponent();
         }
 
@@ -96,30 +86,16 @@ namespace AOEMods.Essence.Editor
 
         private void OnOpenClicked(object sender, RoutedEventArgs e)
         {
-            /*if (sender is MenuItem menuItem &&
+            if (sender is MenuItem menuItem &&
                 menuItem.Parent is ContextMenu contextMenu &&
                 contextMenu.PlacementTarget is FrameworkElement element &&
                 element.DataContext is ArchiveItemViewModel itemViewModel &&
                 itemViewModel.Node is IArchiveFileNode file)
             {
-                switch (file.Extension)
-                {
-                    case ".rgd":
-                        var fileWindow = new GameDataWindow(file)
-                        {
-                            Title = file.FullName,
-                        };
-                        fileWindow.Show();
-                        break;
-                    case ".rrtex":
-                        var textureView = new TextureWindow(file)
-                        {
-                            Title = file.FullName,
-                        };
-                        textureView.Show();
-                        break;
-                }
-            }*/
+                WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
+                    new MemoryStream(file.GetData().ToArray()), file.Extension
+                ));
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ namespace AOEMods.Essence.CLI;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 [Verb("rgd-decode", HelpText = "Converts an RGD file to json.")]
-class RGDDecodeOptions
+public class RGDDecodeOptions
 {
     [Value(0, MetaName = "input-path", Required = true)]
     public string InputPath { get; set; }

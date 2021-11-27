@@ -7,11 +7,18 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:GameDataViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TreeView ItemsSource="{Binding RootChildren}">
-        <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type local:GameDataNodeViewModel}" ItemsSource="{Binding Children}">
-                <TextBlock Text="{Binding DisplayValue}"></TextBlock>
-            </HierarchicalDataTemplate>
-        </TreeView.Resources>
-    </TreeView>
+    <DockPanel AllowDrop="True">
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar HorizontalAlignment="Left" Width="64">
+                <Button Content="Export" Command="{Binding ExportCommand}" />
+            </ToolBar>
+        </ToolBarTray>
+        <TreeView ItemsSource="{Binding RootChildren}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type local:GameDataNodeViewModel}" ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding DisplayValue}"></TextBlock>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </DockPanel>
 </UserControl>

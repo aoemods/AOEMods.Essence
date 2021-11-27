@@ -2,6 +2,6 @@
 
 public interface IArchive
 {
-    IList<IArchiveTocNode> Tocs { get; }
+    IList<IArchiveToc> Tocs { get; }
     public string Name { get; }
 }

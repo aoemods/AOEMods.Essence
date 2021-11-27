@@ -1,12 +1,11 @@
-﻿using Microsoft.Toolkit.Mvvm.Input;
+﻿using AOEMods.Essence.Chunky.RGD;
+using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
-using AOEMods.Essence.Chunky;
-using AOEMods.Essence.Chunky.RGD;
 
 namespace AOEMods.Essence.Editor;
 

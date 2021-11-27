@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using AOEMods.Essence.SGA;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using AOEMods.Essence.SGA;
 
 namespace AOEMods.Essence.Editor
 {
@@ -35,10 +35,12 @@ namespace AOEMods.Essence.Editor
 
             if (e.PropertyName == nameof(Archive))
             {
-                if (archive != null)
+                if (archive != null && archive.Tocs.Count > 0)
                 {
                     RootChildren = new ObservableCollection<ArchiveItemViewModel>(
-                        archive.Tocs.Select(child => new ArchiveItemViewModel(child, null))
+                        archive.Tocs[0].RootFolder.Children.Select(
+                            child => new ArchiveItemViewModel(child, null)
+                        )
                     );
                 }
                 else

@@ -1,12 +1,8 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
+﻿using AOEMods.Essence.SGA;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AOEMods.Essence.SGA;
 
 namespace AOEMods.Essence.Editor
 {
@@ -31,7 +27,7 @@ namespace AOEMods.Essence.Editor
         private ObservableCollection<ArchiveItemViewModel>? children = null;
         private ArchiveItemViewModel? parentViewModel = null;
 
-        public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel parentViewModel)
+        public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel? parentViewModel)
         {
             Node = node;
             this.parentViewModel = parentViewModel;

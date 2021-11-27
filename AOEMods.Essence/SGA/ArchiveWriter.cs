@@ -132,12 +132,12 @@ public class ArchiveWriter : BinaryWriter
 
     public void Write(IArchive archive)
     {
-        var tocNode = archive.Tocs[0];
-        var fileNodes = ArchiveNodeHelper.GatherOfType<IArchiveFileNode>(tocNode).ToList();
-        var folderNodes = ArchiveNodeHelper.GatherOfType<IArchiveFolderNode>(tocNode).ToList();
-        var tocNodes = ArchiveNodeHelper.GatherOfType<IArchiveTocNode>(tocNode).Except(folderNodes).ToList();
+        var toc = archive.Tocs[0];
+        var rootFolder = toc.RootFolder;
+        var fileNodes = toc.Files;
+        var folderNodes = toc.Folders;
 
-        MemoryStream contentStream = new MemoryStream();
+        MemoryStream contentStream = new();
         ArchiveWriter writer = new(contentStream, Encoding.ASCII);
 
         var fileDataOffsets = fileNodes.Select(fileNode =>
@@ -184,16 +184,12 @@ public class ArchiveWriter : BinaryWriter
 
         // Write toc
         long tocEntryOffset = writer.BaseStream.Position;
-        var rootDirectories = tocNode.Children.OfType<IArchiveFolderNode>().ToArray();
-        var rootFiles = tocNode.Children.OfType<IArchiveFileNode>().ToArray();
 
         writer.Write(new ArchiveTocEntry(
-            tocNode.Name, tocNode.Name,
-            rootDirectories.Length == 0 ? 0 : (uint)folderNodes.IndexOf(rootDirectories.First()),
-            rootDirectories.Length == 0 ? 0 : ((uint)folderNodes.IndexOf(rootDirectories.Last()) + 1),
-            rootFiles.Length == 0 ? 0 : (uint)fileNodes.IndexOf(rootFiles.First()),
-            rootFiles.Length == 0 ? 0 : ((uint)fileNodes.IndexOf(rootFiles.Last()) + 1),
-            0
+            toc.Alias, toc.Name,
+            0, (uint)toc.Files.Count,
+            0, (uint)toc.Folders.Count,
+            (uint)folderNodes.IndexOf(toc.RootFolder)
         ));
 
         long dataOffset = writer.BaseStream.Position;

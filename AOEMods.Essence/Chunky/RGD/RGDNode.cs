@@ -1,7 +1,4 @@
-﻿using System.Text;
-using AOEMods.Essence.Chunky;
-
-namespace AOEMods.Essence.Chunky.RGD;
+﻿namespace AOEMods.Essence.Chunky.RGD;
 
 public class RGDNode
 {

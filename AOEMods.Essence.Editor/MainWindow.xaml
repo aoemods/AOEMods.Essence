@@ -13,7 +13,7 @@
                 <Button Content="Open" Command="{Binding OpenArchiveCommand}" />
             </ToolBar>
         </ToolBarTray>
-        <TabControl ItemsSource="{Binding TabItems}">
+        <TabControl ItemsSource="{Binding TabItems}" SelectedIndex="{Binding SelectedTabIndex}">
             <TabControl.Resources>
                 <DataTemplate DataType="{x:Type local:ArchiveViewModel}">
                     <local:ArchiveView />

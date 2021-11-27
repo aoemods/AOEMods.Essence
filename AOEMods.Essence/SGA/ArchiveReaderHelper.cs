@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AOEMods.Essence.SGA;
+﻿namespace AOEMods.Essence.SGA;
 
 public static class ArchiveReaderHelper
 {
@@ -15,9 +9,12 @@ public static class ArchiveReaderHelper
             return new ArchiveStoredFileNode(Path.GetFileName(filePath), File.ReadAllBytes(filePath), parent);
         }
 
-        IArchiveFolderNode DirectoryPathToNode(string directoryPath, IArchiveNode parent)
+        IArchiveFolderNode DirectoryPathToNode(string directoryPath, IArchiveNode? parent)
         {
-            var folderNode = new ArchiveFolderNode(Path.GetRelativePath(rootDirectoryPath, directoryPath), parent: parent);
+            var folderNode = new ArchiveFolderNode(
+                rootDirectoryPath == directoryPath ? "" : Path.GetRelativePath(rootDirectoryPath, directoryPath),
+                parent: parent
+            );
 
             foreach (string childDirectoryPath in Directory.GetDirectories(directoryPath))
             {
@@ -32,23 +29,9 @@ public static class ArchiveReaderHelper
             return folderNode;
         }
 
-        IArchiveTocNode TocDirectoryPathToNode(string directoryPath)
-        {
-            var tocNode = new ArchiveTocNode(archiveName);
+        var rootFolder = DirectoryPathToNode(rootDirectoryPath, null);
+        var toc = new ArchiveToc(archiveName, archiveName, rootFolder);
 
-            foreach (string childDirectoryPath in Directory.GetDirectories(directoryPath))
-            {
-                tocNode.Children.Add(DirectoryPathToNode(childDirectoryPath, tocNode));
-            }
-
-            foreach (string childFilePath in Directory.GetFiles(directoryPath))
-            {
-                tocNode.Children.Add(FilePathToNode(childFilePath, tocNode));
-            }
-
-            return tocNode;
-        }
-
-        return new Archive(archiveName, new IArchiveTocNode[] { TocDirectoryPathToNode(rootDirectoryPath) });
+        return new Archive(archiveName, new IArchiveToc[] { toc });
     }
 }

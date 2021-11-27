@@ -1,10 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Windows;
-using AOEMods.Essence.Chunky;
-using AOEMods.Essence.Chunky.RGD;
-using AOEMods.Essence.SGA;
+﻿using System.Windows;
 
 namespace AOEMods.Essence.Editor
 {

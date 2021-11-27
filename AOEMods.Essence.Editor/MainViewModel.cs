@@ -1,21 +1,31 @@
-﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using Microsoft.Win32;
-using SixLabors.ImageSharp.Formats.Png;
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using AOEMods.Essence.Chunky;
+﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.SGA;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.Toolkit.Mvvm.Messaging;
+using Microsoft.Win32;
+using SixLabors.ImageSharp.Formats.Png;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Windows;
 
 namespace AOEMods.Essence.Editor;
 
-public class MainViewModel : ObservableRecipient
+public record OpenStreamMessage(Stream Stream, string Extension);
+
+public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 {
     public RelayCommand OpenArchiveCommand { get; }
+
+    public int SelectedTabIndex
+    {
+        get => selectedTabIndex;
+        set => SetProperty(ref selectedTabIndex, value);
+    }
+
+    private int selectedTabIndex = 0;
 
     public ObservableCollection<object> TabItems
     {
@@ -25,25 +35,60 @@ public class MainViewModel : ObservableRecipient
     public MainViewModel()
     {
         OpenArchiveCommand = new RelayCommand(OpenArchive);
+
+        WeakReferenceMessenger.Default.Register<OpenStreamMessage>(this);
     }
 
     public void OpenFile(string path)
     {
-        TabItems.Add(Path.GetExtension(path) switch
+        OpenStream(File.OpenRead(path), Path.GetExtension(path));
+    }
+
+    public void OpenStream(Stream stream, string extension)
+    {
+        switch (extension)
         {
-            ".rgd" => new GameDataViewModel()
-            {
-                RootNodes = new ObservableCollection<RGDNode>(ReadFormat.RGD(path))
-            },
-            ".sga" => new ArchiveViewModel()
-            {
-                Archive = (new ArchiveReader(File.OpenRead(path))).ReadArchive()
-            },
-            ".rrtex" => new TextureViewModel()
-            {
-                ImageFile = ReadFormat.RRTex(File.OpenRead(path), PngFormat.Instance).First()
-            },
-            _ => throw new NotSupportedException($"Unsupported extension ${path}")
+            case ".rgd":
+                AddRgdTab(stream);
+                break;
+            case ".sga":
+                AddSgaTab(stream);
+                break;
+            case ".rrtex":
+                AddRRTexTab(stream);
+                break;
+            default:
+                MessageBox.Show(
+                    $"Unsupported extension '{extension}'", "Unsupported extension",
+                    MessageBoxButton.OK, MessageBoxImage.Error
+                );
+                return;
+        }
+
+        SelectedTabIndex = TabItems.Count - 1;
+    }
+
+    public void AddRgdTab(Stream stream)
+    {
+        TabItems.Add(new GameDataViewModel()
+        {
+            RootNodes = new ObservableCollection<RGDNode>(ReadFormat.RGD(stream))
+        });
+    }
+
+    public void AddSgaTab(Stream stream)
+    {
+        TabItems.Add(new ArchiveViewModel()
+        {
+            Archive = (new ArchiveReader(stream)).ReadArchive()
+        });
+    }
+
+    public void AddRRTexTab(Stream stream)
+    {
+        TabItems.Add(new TextureViewModel()
+        {
+            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).First()
         });
     }
 
@@ -59,5 +104,10 @@ public class MainViewModel : ObservableRecipient
         {
             OpenFile(openFileDialog.FileName);
         }
+    }
+
+    public void Receive(OpenStreamMessage message)
+    {
+        OpenStream(message.Stream, message.Extension);
     }
 }
