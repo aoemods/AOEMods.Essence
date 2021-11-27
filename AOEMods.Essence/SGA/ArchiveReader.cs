@@ -73,14 +73,12 @@ public class ArchiveReader : BinaryReader
         ushort product = ReadUInt16();
         string niceName = ReadFixedString(64, 2);
 
-        ulong blobOffset = ReadUInt64();
-        uint num2 = ReadUInt32();
-        ulong dataOffset = ReadUInt64();
-        ulong dataBlobOffset = ReadUInt64();
+        ulong blobOffset = ReadUInt64(); // header blob offset
+        uint blobLength = ReadUInt32(); // head blob length
+        ulong dataOffset = ReadUInt64(); // data blob offset
+        ulong dataBlobLength = ReadUInt64(); // data blob length
 
-        uint unknown2 = ReadUInt32();
-
-        BaseStream.Seek(256L, SeekOrigin.Current);
+        uint unknown2 = ReadUInt32(); // always 1?
 
         BaseStream.Seek((long)blobOffset, SeekOrigin.Begin);
 
@@ -91,17 +89,22 @@ public class ArchiveReader : BinaryReader
         uint fileDataOffset = ReadUInt32();
         uint fileDataCount = ReadUInt32();
         uint stringOffset = ReadUInt32();
+        uint stringLength = ReadUInt32();
 
-        uint unknown3 = ReadUInt32();
-        uint unknown4 = ReadUInt32();
-        uint unknown5 = ReadUInt32();
+        uint fileHashOffset = ReadUInt32();
+        uint fileHashLength = ReadUInt32();
 
         uint blockSize = ReadUInt32();
 
         return new ArchiveHeader(
-            magic, version, product, niceName, blobOffset, dataOffset,
-            tocDataOffset, tocDataCount, folderDataOffset, folderDataCount,
-            fileDataOffset, fileDataCount, stringOffset, blockSize
+            magic, version, product, niceName,
+            blobOffset, blobLength,
+            dataOffset, dataBlobLength,
+            tocDataOffset, tocDataCount,
+            folderDataOffset, folderDataCount,
+            fileDataOffset, fileDataCount,
+            stringOffset, stringLength,
+            blockSize
         );
     }
 

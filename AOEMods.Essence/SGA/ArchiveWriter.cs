@@ -69,33 +69,33 @@ public class ArchiveWriter : BinaryWriter
 
     public void Write(ArchiveHeader header)
     {
-        Write(header.Magic);
-        Write(header.Version);
-        Write(header.Product);
-        WriteFixedString(header.NiceName, 64, 2);
-        Write(header.Offset);
-        Write(0U); // num2
-        Write(header.DataOffset);
-        Write(0UL); // data blob offset
-        Write(0); // unk2
+        Write(header.Magic); // 0
+        Write(header.Version); // 8
+        Write(header.Product); // 10
+        WriteFixedString(header.NiceName, 64, 2); // 12
+        Write(header.Offset); // 140 header blob offset
+        Write(header.HeaderBlobLength); // 148 num2 / header blob length
+        Write(header.DataOffset); // 152 data blob offset
+        Write(header.DataBlobLength); // 160 data blob length
+        Write(1U); // 168 unk2 == 1
 
         // When reading we seek over this, just write zeros
-        Write(new byte[256]);
+        Write(new byte[256]); // 172
         Write(new byte[header.Offset - (ulong)BaseStream.Position]);
 
-        Write(header.TocDataOffset);
-        Write(header.TocDataCount);
-        Write(header.FolderDataOffset);
-        Write(header.FolderDataCount);
-        Write(header.FileDataOffset);
-        Write(header.FileDataCount);
-        Write(header.StringOffset);
+        Write(header.TocDataOffset); // 256
+        Write(header.TocDataCount); // 260
+        Write(header.FolderDataOffset); // 264
+        Write(header.FolderDataCount); // 268
+        Write(header.FileDataOffset); // 272
+        Write(header.FileDataCount); // 276
+        Write(header.StringOffset); // 280
+        Write(header.StringLength); // 284
 
-        Write(0U); // unk3
-        Write(0U); // unk4
-        Write(0U); // unk5
+        Write(0U); // 288 file hash offset
+        Write(0U); // 292 file hash length
 
-        Write(header.BlockSize);
+        Write(header.BlockSize); // 296
     }
 
     public void Write(ArchiveTocEntry tocEntry)
@@ -192,22 +192,28 @@ public class ArchiveWriter : BinaryWriter
             (uint)folderNodes.IndexOf(toc.RootFolder)
         ));
 
-        long dataOffset = writer.BaseStream.Position;
-        writer.WriteData();
-
         long stringsOffset = writer.BaseStream.Position;
         writer.WriteStrings();
+        long stringLength = writer.BaseStream.Position - stringsOffset;
+
+        long headerBlobLength = writer.BaseStream.Position + 44;
+
+        long dataOffset = writer.BaseStream.Position;
+        writer.WriteData();
+        long dataBlobLength = writer.BaseStream.Position - dataOffset;
 
         // Write the actual file
 
         // Write header
         Write(new ArchiveHeader(
             Magic, Version, Product, archive.Name,
-            HeaderSize, HeaderSize + (ulong)dataOffset + HeaderExtraSize,
+            HeaderSize, (uint)headerBlobLength,
+            HeaderSize + (ulong)dataOffset + HeaderExtraSize, (ulong)dataBlobLength,
             (uint)tocEntryOffset + HeaderExtraSize, 1,
             (uint)folderEntryOffset + HeaderExtraSize, (uint)folderNodes.Count,
             (uint)fileEntryOffset + HeaderExtraSize, (uint)fileNodes.Count,
-            (uint)stringsOffset + HeaderExtraSize, BlockSize
+            (uint)stringsOffset + HeaderExtraSize, (uint)stringLength,
+            BlockSize
         ));
 
         Write(contentStream.ToArray());
