@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="AOEMods.Essence.Editor.TextureView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AOEMods.Essence.Editor"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance local:TextureViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DockPanel AllowDrop="True">
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar HorizontalAlignment="Left" Width="64">
+                <Button Content="Export" Command="{Binding ExportCommand}" />
+            </ToolBar>
+        </ToolBarTray>
+        <Image Source="{Binding Image}" />
+    </DockPanel>
+</UserControl>

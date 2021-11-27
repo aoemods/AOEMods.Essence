@@ -1,0 +1,239 @@
+﻿using System.Text;
+
+namespace AOEMods.Essence.SGA;
+
+public class ArchiveReader : BinaryReader
+{
+    public ArchiveReader(Stream input) : base(input)
+    {
+    }
+
+    public ArchiveReader(Stream input, Encoding encoding) : base(input, encoding)
+    {
+    }
+
+    public ArchiveReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
+    {
+    }
+
+    public string ReadCString()
+    {
+        List<char> chars = new List<char>();
+        while (true)
+        {
+            char c = ReadChar();
+            if (c != 0)
+            {
+                chars.Add(c);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return new string(chars.ToArray());
+    }
+
+    private string ReadFixedString(int charCount, int charSize)
+    {
+        byte[] array = ReadBytes(charCount * charSize);
+        if (array == null || array.Length != charCount * charSize)
+        {
+            throw new ApplicationException($"File length is not sufficient for fixed string of length {charCount * charSize}.");
+        }
+        for (int i = 0; i < charCount; i++)
+        {
+            bool flag = true;
+            for (int j = 0; j < charSize; j++)
+            {
+                if (array[i * charSize + j] != 0)
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag)
+            {
+                charCount = i;
+            }
+        }
+        return charSize switch
+        {
+            1 => Encoding.UTF8.GetString(array, 0, charCount * charSize),
+            2 => Encoding.Unicode.GetString(array, 0, charCount * charSize),
+            _ => throw new ArgumentOutOfRangeException("charSize"),
+        };
+    }
+
+    public ArchiveHeader ReadHeader()
+    {
+        byte[] magic = ReadBytes(8);
+        ushort version = ReadUInt16();
+        ushort product = ReadUInt16();
+        string niceName = ReadFixedString(64, 2);
+
+        ulong blobOffset = ReadUInt64();
+        uint num2 = ReadUInt32();
+        ulong dataOffset = ReadUInt64();
+        ulong dataBlobOffset = ReadUInt64();
+
+        uint unknown2 = ReadUInt32();
+
+        BaseStream.Seek(256L, SeekOrigin.Current);
+
+        BaseStream.Seek((long)blobOffset, SeekOrigin.Begin);
+
+
+        uint tocDataOffset = ReadUInt32();
+        uint tocDataCount = ReadUInt32();
+        uint folderDataOffset = ReadUInt32();
+        uint folderDataCount = ReadUInt32();
+        uint fileDataOffset = ReadUInt32();
+        uint fileDataCount = ReadUInt32();
+        uint stringOffset = ReadUInt32();
+
+        uint unknown3 = ReadUInt32();
+        uint unknown4 = ReadUInt32();
+        uint unknown5 = ReadUInt32();
+
+        uint blockSize = ReadUInt32();
+
+        return new ArchiveHeader(
+            magic, version, product, niceName, blobOffset, dataOffset,
+            tocDataOffset, tocDataCount, folderDataOffset, folderDataCount,
+            fileDataOffset, fileDataCount, stringOffset, blockSize
+        );
+    }
+
+    public ArchiveTocEntry ReadTocEntry()
+    {
+        string alias = ReadFixedString(64, 1);
+        string name = ReadFixedString(64, 1);
+        uint folderStartIndex = ReadUInt32();
+        uint folderEndIndex = ReadUInt32();
+        uint fileStartIndex = ReadUInt32();
+        uint fileEndIndex = ReadUInt32();
+        uint folderRootIndex = ReadUInt32();
+
+        return new ArchiveTocEntry(alias, name, folderStartIndex, folderEndIndex, fileStartIndex, fileEndIndex, folderRootIndex);
+    }
+
+    public ArchiveFolderEntry ReadFolderEntry()
+    {
+        uint nameOffset = ReadUInt32();
+        uint folderStartIndex = ReadUInt32();
+        uint folderEndIndex = ReadUInt32();
+        uint fileStartIndex = ReadUInt32();
+        uint fileEndIndex = ReadUInt32();
+
+        return new ArchiveFolderEntry(nameOffset, folderStartIndex, folderEndIndex, fileStartIndex, fileEndIndex);
+    }
+
+    public ArchiveFileEntry ReadFileEntry()
+    {
+        uint nameOffset = ReadUInt32();
+        uint hashOffset = ReadUInt32();
+        ulong dataOffset = ReadUInt64();
+        uint compressedLength = ReadUInt32();
+        uint uncompressedLength = ReadUInt32();
+        byte verificationType = ReadByte();
+        byte storageType = ReadByte();
+        uint crc = ReadUInt32();
+
+        return new ArchiveFileEntry(
+            nameOffset, hashOffset, dataOffset, compressedLength,
+            uncompressedLength, (FileVerificationType)verificationType,
+            (FileStorageType)storageType, crc
+        );
+    }
+
+    public ArchiveEntries ReadArchiveEntries()
+    {
+        var header = ReadHeader();
+
+        var tocs = new ArchiveTocEntry[header.TocDataCount];
+        var folders = new ArchiveFolderEntry[header.FolderDataCount];
+        var files = new ArchiveFileEntry[header.FileDataCount];
+
+        BaseStream.Seek((long)(header.Offset + header.TocDataOffset), SeekOrigin.Begin);
+        for (int i = 0; i < header.TocDataCount; i++)
+        {
+            tocs[i] = ReadTocEntry();
+        }
+
+        BaseStream.Seek((long)(header.Offset + header.FolderDataOffset), SeekOrigin.Begin);
+        for (int i = 0; i < header.FolderDataCount; i++)
+        {
+            folders[i] = ReadFolderEntry();
+        }
+
+        BaseStream.Seek((long)(header.Offset + header.FileDataOffset), SeekOrigin.Begin);
+        for (int i = 0; i < header.FileDataCount; i++)
+        {
+            files[i] = ReadFileEntry();
+        }
+
+        return new ArchiveEntries(header, tocs, folders, files);
+    }
+
+    public Archive ReadArchive()
+    {
+        ArchiveEntries archive = ReadArchiveEntries();
+
+        IArchiveTocNode FromTocEntry(ArchiveTocEntry tocEntry, IArchiveNode? parent)
+        {
+            var tocNode = new ArchiveTocNode(tocEntry.Name);
+
+            for (uint folderIndex = tocEntry.FolderStartIndex; folderIndex < tocEntry.FolderEndIndex; folderIndex++)
+            {
+                tocNode.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], tocNode));
+            }
+
+            for (uint fileIndex = tocEntry.FileStartIndex; fileIndex < tocEntry.FileEndIndex; fileIndex++)
+            {
+                tocNode.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], tocNode));
+            }
+
+            return tocNode;
+        }
+
+        IArchiveFolderNode FromFolderEntry(ArchiveFolderEntry folderEntry, IArchiveNode? parent)
+        {
+            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
+            string name = ReadCString();
+            int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
+            if (lastSeparatorIndex >= 0)
+            {
+                name = name.Substring(lastSeparatorIndex + 1);
+            }
+
+            var folderNode = new ArchiveFolderNode(name, parent: parent);
+
+            for (uint folderIndex = folderEntry.FolderStartIndex; folderIndex < folderEntry.FolderEndIndex; folderIndex++)
+            {
+                folderNode.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], folderNode));
+            }
+
+            for (uint fileIndex = folderEntry.FileStartIndex; fileIndex < folderEntry.FileEndIndex; fileIndex++)
+            {
+                folderNode.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], folderNode));
+            }
+
+            return folderNode;
+        }
+
+        IArchiveFileNode FromFileEntry(ArchiveFileEntry fileEntry, IArchiveNode? parent)
+        {
+            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + fileEntry.NameOffset);
+            string name = ReadCString();
+
+            return new ArchiveFileNode(
+                BaseStream, name, (long)(archive.Header.DataOffset + fileEntry.DataOffset),
+                fileEntry.CompressedLength, fileEntry.UncompressedSize, fileEntry.StorageType, parent
+            );
+        }
+
+        return new Archive(archive.Header.NiceName, new[] { FromTocEntry(archive.Tocs.First(), null) });
+    }
+}
