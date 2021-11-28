@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>$(VersionPrefix)0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

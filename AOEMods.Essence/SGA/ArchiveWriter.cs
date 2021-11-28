@@ -80,7 +80,11 @@ public class ArchiveWriter : BinaryWriter
         Write(1U); // 168 unk2 == 1
 
         // When reading we seek over this, just write zeros
-        Write(new byte[256]); // 172
+        //Write(new byte[256]); // 172
+        for (int i = 0; i < 32; i++)
+        {
+            Write(8UL);
+        }
         Write(new byte[header.Offset - (ulong)BaseStream.Position]);
 
         Write(header.TocDataOffset); // 256
