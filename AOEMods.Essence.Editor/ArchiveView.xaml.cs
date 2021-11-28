@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor
 {
@@ -53,6 +54,15 @@ namespace AOEMods.Essence.Editor
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
                     new MemoryStream(file.GetData().ToArray()), file.Extension
                 ));
+            }
+        }
+
+        private void OnItemDoubleClicked(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel)
+            {
+                itemViewModel.OpenCommand.Execute(null);
             }
         }
     }

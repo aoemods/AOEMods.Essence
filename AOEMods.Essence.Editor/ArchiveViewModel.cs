@@ -60,27 +60,10 @@ namespace AOEMods.Essence.Editor
         {
             if (Archive != null)
             {
-                VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog()
-                {
-                    Description = "Select a directory to unpack the archive into"
-                };
-
-                if (dialog.ShowDialog() == true)
-                {
-                    var fileNodes = ArchiveNodeHelper.EnumerateChildren(Archive.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
-
-                    foreach (var fileNode in fileNodes)
-                    {
-                        string fullName = fileNode.FullName;
-                        var outputFilePath = Path.Join(dialog.SelectedPath, fullName);
-                        var outputDirectory = Path.GetDirectoryName(outputFilePath);
-                        if (outputDirectory != null)
-                        {
-                            Directory.CreateDirectory(outputDirectory);
-                        }
-                        File.WriteAllBytes(outputFilePath, fileNode.GetData().ToArray());
-                    }
-                }
+                ExportArchiveUtil.ShowExportArchiveNodeDialog(
+                    Archive.Tocs[0].RootFolder,
+                    "Select a directory to unpack the archive into"
+                );
             }
         }
 

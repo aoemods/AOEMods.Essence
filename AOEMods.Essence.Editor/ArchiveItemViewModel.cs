@@ -1,6 +1,8 @@
-﻿using AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.Chunky;
+using AOEMods.Essence.SGA;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using System.Collections.ObjectModel;
@@ -34,6 +36,7 @@ namespace AOEMods.Essence.Editor
 
         public ICommand ExportCommand { get; }
         public ICommand DeleteCommand { get; }
+        public ICommand OpenCommand { get; }
 
         public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel? parentViewModel)
         {
@@ -42,6 +45,7 @@ namespace AOEMods.Essence.Editor
 
             ExportCommand = new RelayCommand(Export);
             DeleteCommand = new RelayCommand(Delete);
+            OpenCommand = new RelayCommand(Open);
         }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -61,58 +65,25 @@ namespace AOEMods.Essence.Editor
             }
         }
 
+        private void Open()
+        {
+            if (node is IArchiveFileNode fileNode)
+            {
+                WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
+                    new MemoryStream(fileNode.GetData().ToArray()),
+                    fileNode.Extension
+                ));
+            }
+        }
+
         private void Export()
         {
             if (Node != null)
             {
-                switch (Node)
-                {
-                    case IArchiveFileNode file:
-                        {
-                            SaveFileDialog saveFileDialog = new SaveFileDialog()
-                            {
-                                Filter = $"*.{file.Extension}|All(*.*)",
-                                FileName = file.Name
-                            };
-                            if (saveFileDialog.ShowDialog() == true)
-                            {
-                                File.WriteAllBytes(saveFileDialog.FileName, file.GetData().ToArray());
-                            }
-                            break;
-                        }
-                    case IArchiveFolderNode:
-                        {
-                            VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog()
-                            {
-                                Description = "Select a directory to unpack the archive's folder into"
-                            };
-
-                            if (dialog.ShowDialog() == true)
-                            {
-                                void ExportRecursive(IArchiveNode node)
-                                {
-                                    if (node is IArchiveFileNode file)
-                                    {
-                                        byte[] data = file.GetData().ToArray();
-                                        string relativePath = Path.GetRelativePath(Node.FullName, node.FullName);
-                                        string outPath = Path.Join(dialog.SelectedPath, Node.Name, relativePath);
-                                        Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-                                        File.WriteAllBytes(outPath, data);
-                                    }
-                                    else if (node is IArchiveFolderNode folderNode)
-                                    {
-                                        foreach (var childNodeChild in folderNode.Children)
-                                        {
-                                            ExportRecursive(childNodeChild);
-                                        }
-                                    }
-                                }
-
-                                ExportRecursive(Node);
-                            }
-                            break;
-                        }
-                }
+                ExportArchiveUtil.ShowExportArchiveNodeDialog(
+                    Node,
+                    "Select a path to unpack to"
+                );
             }
         }
 

@@ -17,16 +17,16 @@
         <TreeView ItemsSource="{Binding RootChildren}">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArchiveItemViewModel}" ItemsSource="{Binding Children}">
-                    <TextBlock Text="{Binding DisplayText}">
-                        <TextBlock.ContextMenu>
+                    <Label Content="{Binding DisplayText}" MouseDoubleClick="OnItemDoubleClicked">
+                        <Label.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Open" Click="OnOpenClicked" />
                                 <MenuItem Header="Export" Click="OnExportClicked" />
                                 <MenuItem Header="Rename" />
                                 <MenuItem Header="Delete" Click="OnDeleteClicked" />
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                        </Label.ContextMenu>
+                    </Label>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>
