@@ -14,7 +14,9 @@ namespace AOEMods.Essence.Editor
             MainWindow mainWindow = new MainWindow();
             foreach (var arg in e.Args)
             {
-                WeakReferenceMessenger.Default.Send(new OpenStreamMessage(File.OpenRead(arg), Path.GetExtension(arg)));
+                WeakReferenceMessenger.Default.Send(
+                    new OpenStreamMessage(File.OpenRead(arg), Path.GetExtension(arg), Path.GetFileName(arg))
+                );
             }
             mainWindow.Show();
         }

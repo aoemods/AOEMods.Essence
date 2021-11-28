@@ -27,8 +27,6 @@ public class GameDataViewModel : TabItemViewModel
 
     private ObservableCollection<RGDNode>? rootNodes = null;
 
-    public override string TabTitle => "RGD";
-
     public ICommand ExportCommand { get; }
 
     public GameDataViewModel()

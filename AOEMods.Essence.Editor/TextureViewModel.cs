@@ -27,8 +27,6 @@ public class TextureViewModel : TabItemViewModel
 
     private TextureMip? imageFile = null;
 
-    public override string TabTitle => "RRTex";
-
     public ICommand ExportCommand { get; }
 
     public TextureViewModel()

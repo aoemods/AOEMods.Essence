@@ -71,7 +71,7 @@ namespace AOEMods.Essence.Editor
             {
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
                     new MemoryStream(fileNode.GetData().ToArray()),
-                    fileNode.Extension
+                    fileNode.Extension, fileNode.Name
                 ));
             }
         }

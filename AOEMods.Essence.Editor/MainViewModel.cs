@@ -15,7 +15,7 @@ using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor;
 
-public record OpenStreamMessage(Stream Stream, string Extension);
+public record OpenStreamMessage(Stream Stream, string Extension, string Title);
 
 public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 {
@@ -45,7 +45,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 
     public void Receive(OpenStreamMessage message)
     {
-        OpenStream(message.Stream, message.Extension);
+        OpenStream(message.Stream, message.Extension, message.Title);
     }
 
     public void OnDrop(IDataObject droppedObject)
@@ -76,7 +76,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 
     private void OpenFile(string filePath)
     {
-        OpenStream(File.OpenRead(filePath), Path.GetExtension(filePath)); ;
+        OpenStream(File.OpenRead(filePath), Path.GetExtension(filePath), Path.GetFileName(filePath));
     }
 
     private void OpenDirectoryDialog()
@@ -90,25 +90,26 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         {
             TabItems.Add(new ArchiveViewModel()
             {
-                Archive = ArchiveReaderHelper.DirectoryToArchive(dialog.SelectedPath, "data")
+                Archive = ArchiveReaderHelper.DirectoryToArchive(dialog.SelectedPath, "data"),
+                TabTitle = new DirectoryInfo(dialog.SelectedPath).Name,
             });
 
             SelectedTabIndex = TabItems.Count - 1;
         }
     }
 
-    private void OpenStream(Stream stream, string extension)
+    private void OpenStream(Stream stream, string extension, string title)
     {
         switch (extension)
         {
             case ".rgd":
-                AddRgdTab(stream);
+                AddRgdTab(stream, title);
                 break;
             case ".sga":
-                AddSgaTab(stream);
+                AddSgaTab(stream, title);
                 break;
             case ".rrtex":
-                AddRRTexTab(stream);
+                AddRRTexTab(stream, title);
                 break;
             default:
                 MessageBox.Show(
@@ -121,27 +122,30 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         SelectedTabIndex = TabItems.Count - 1;
     }
 
-    private void AddRgdTab(Stream stream)
+    private void AddRgdTab(Stream stream, string title)
     {
         TabItems.Add(new GameDataViewModel()
         {
-            RootNodes = new ObservableCollection<RGDNode>(ReadFormat.RGD(stream))
+            RootNodes = new ObservableCollection<RGDNode>(ReadFormat.RGD(stream)),
+            TabTitle = title,
         });
     }
 
-    private void AddSgaTab(Stream stream)
+    private void AddSgaTab(Stream stream, string title)
     {
         TabItems.Add(new ArchiveViewModel()
         {
-            Archive = (new ArchiveReader(stream)).ReadArchive()
+            Archive = (new ArchiveReader(stream)).ReadArchive(),
+            TabTitle = title,
         });
     }
 
-    private void AddRRTexTab(Stream stream)
+    private void AddRRTexTab(Stream stream, string title)
     {
         TabItems.Add(new TextureViewModel()
         {
-            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).First()
+            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).First(),
+            TabTitle = title,
         });
     }
 }

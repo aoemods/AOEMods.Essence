@@ -52,7 +52,7 @@ namespace AOEMods.Essence.Editor
                 itemViewModel.Node is IArchiveFileNode file)
             {
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
-                    new MemoryStream(file.GetData().ToArray()), file.Extension
+                    new MemoryStream(file.GetData().ToArray()), file.Extension, file.Name
                 ));
             }
         }

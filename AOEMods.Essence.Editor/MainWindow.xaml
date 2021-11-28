@@ -28,7 +28,7 @@
             </TabControl.Resources>
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="local:TabItemViewModel">
-                    <TextBlock Text="Tab" />
+                    <TextBlock Text="{Binding TabTitle}" />
                 </DataTemplate>
             </TabControl.ItemTemplate>
         </TabControl>

@@ -26,8 +26,6 @@ namespace AOEMods.Essence.Editor
             set => SetProperty(ref archive, value);
         }
 
-        public override string TabTitle => Archive?.Name ?? "Unloaded archive";
-
         private IArchive? archive = null;
         public ICommand PackCommand { get; }
         public ICommand UnpackCommand { get; }

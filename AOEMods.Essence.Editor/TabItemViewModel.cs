@@ -4,9 +4,11 @@ namespace AOEMods.Essence.Editor
 {
     public abstract class TabItemViewModel : ObservableRecipient
     {
-        public abstract string TabTitle
+        public string TabTitle
         {
-            get;
+            get => tabTitle;
+            set => SetProperty(ref tabTitle, value);
         }
+        private string tabTitle = "";
     }
 }
