@@ -9,5 +9,5 @@ public record ArchiveHeader(
     uint FolderDataOffset, uint FolderDataCount,
     uint FileDataOffset, uint FileDataCount,
     uint StringOffset, uint StringLength,
-    uint BlockSize
+    uint BlockSize, byte[] Signature
 );

@@ -31,11 +31,15 @@ namespace AOEMods.Essence.Editor
         private IArchive? archive = null;
         public ICommand PackCommand { get; }
         public ICommand UnpackCommand { get; }
+        public ICommand OpenPropertiesCommand { get; }
+
+        private ArchivePropertiesView? propertiesWindow = null;
 
         public ArchiveViewModel()
         {
             PackCommand = new RelayCommand(Pack);
             UnpackCommand = new RelayCommand(Unpack);
+            OpenPropertiesCommand = new RelayCommand(OpenProperties);
         }
 
         private void Pack()
@@ -64,6 +68,24 @@ namespace AOEMods.Essence.Editor
                     Archive.Tocs[0].RootFolder,
                     "Select a directory to unpack the archive into"
                 );
+            }
+        }
+
+        private void OpenProperties()
+        {
+            if (Archive != null)
+            {
+                if (propertiesWindow == null || !propertiesWindow.IsLoaded)
+                {
+                    propertiesWindow = new ArchivePropertiesView();
+                }
+                else
+                {
+                    propertiesWindow.Activate();
+                }
+
+                propertiesWindow.ViewModel.Archive = Archive;
+                propertiesWindow.Show();
             }
         }
 

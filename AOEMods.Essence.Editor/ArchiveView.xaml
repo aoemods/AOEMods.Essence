@@ -12,6 +12,7 @@
             <ToolBar HorizontalAlignment="Left">
                 <Button Content="Pack" Command="{Binding PackCommand}" />
                 <Button Content="Unpack" Command="{Binding UnpackCommand}" />
+                <Button Content="Properties" Command="{Binding OpenPropertiesCommand}" />
             </ToolBar>
         </ToolBarTray>
         <TreeView ItemsSource="{Binding RootChildren}">

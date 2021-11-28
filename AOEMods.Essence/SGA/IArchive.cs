@@ -3,5 +3,6 @@
 public interface IArchive
 {
     IList<IArchiveToc> Tocs { get; }
-    public string Name { get; }
+    public string Name { get; set; }
+    public byte[] Signature { get; set; }
 }

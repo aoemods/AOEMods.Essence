@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:AOEMods.Essence.Editor"
         mc:Ignorable="d"
         WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
         Title="ExportFolderDialog" SizeToContent="Height" Width="600">
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:ExportRgdViewModel}">

@@ -79,12 +79,12 @@ public class ArchiveWriter : BinaryWriter
         Write(header.DataBlobLength); // 160 data blob length
         Write(1U); // 168 unk2 == 1
 
-        // When reading we seek over this, just write zeros
-        //Write(new byte[256]); // 172
-        for (int i = 0; i < 32; i++)
+        Write(header.Signature);
+        if (header.Offset != (ulong)BaseStream.Position)
         {
-            Write(8UL);
+            throw new Exception("Header length or offset incorrect.");
         }
+
         Write(new byte[header.Offset - (ulong)BaseStream.Position]);
 
         Write(header.TocDataOffset); // 256
@@ -217,7 +217,7 @@ public class ArchiveWriter : BinaryWriter
             (uint)folderEntryOffset + HeaderExtraSize, (uint)folderNodes.Count,
             (uint)fileEntryOffset + HeaderExtraSize, (uint)fileNodes.Count,
             (uint)stringsOffset + HeaderExtraSize, (uint)stringLength,
-            BlockSize
+            BlockSize, archive.Signature
         ));
 
         Write(contentStream.ToArray());

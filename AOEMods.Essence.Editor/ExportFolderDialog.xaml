@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:AOEMods.Essence.Editor"
         mc:Ignorable="d"
         WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
         d:DataContext="{d:DesignInstance local:ExportFolderDialogViewModel, IsDesignTimeCreatable=True}"
         Title="ExportFolderDialog" SizeToContent="Height" Width="600">
     <StackPanel>

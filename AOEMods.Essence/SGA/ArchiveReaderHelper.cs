@@ -32,6 +32,6 @@ public static class ArchiveReaderHelper
         var rootFolder = DirectoryPathToNode(rootDirectoryPath, null);
         var toc = new ArchiveToc(archiveName, archiveName, rootFolder);
 
-        return new Archive(archiveName, new IArchiveToc[] { toc });
+        return new Archive(archiveName, new IArchiveToc[] { toc }, new byte[256]);
     }
 }

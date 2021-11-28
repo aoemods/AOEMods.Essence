@@ -1,0 +1,42 @@
+﻿<Window x:Class="AOEMods.Essence.Editor.ArchivePropertiesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AOEMods.Essence.Editor"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance local:ArchivePropertiesViewModel, IsDesignTimeCreatable=True}"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        Title="ArchivePropertiesView" SizeToContent="Height"  Width="800">
+    <StackPanel>
+        <DockPanel>
+            <Label DockPanel.Dock="Left">Name:</Label>
+            <TextBox Text="{Binding Name}" />
+        </DockPanel>
+        <Label>Signature:</Label>
+        <TextBox Text="{Binding SignatureString}" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" />
+        <GroupBox Header="Table of Contents">
+            <StackPanel>
+                <DockPanel>
+                    <Label DockPanel.Dock="Left">Name:</Label>
+                    <TextBox Text="{Binding TocName}" />
+                </DockPanel>
+                <DockPanel>
+                    <Label DockPanel.Dock="Left">Alias:</Label>
+                    <TextBox Text="{Binding TocAlias}" />
+                </DockPanel>
+            </StackPanel>
+        </GroupBox>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Click="OnOkClicked">OK</Button>
+            <Button Grid.Column="1" Click="OnCancelClicked">Cancel</Button>
+            <Button Grid.Column="2" Command="{Binding ApplyCommand}">Apply</Button>
+        </Grid>
+    </StackPanel>
+</Window>

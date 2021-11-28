@@ -96,6 +96,8 @@ public class ArchiveReader : BinaryReader
 
         uint blockSize = ReadUInt32();
 
+        byte[] signature = ReadBytes(256);
+
         return new ArchiveHeader(
             magic, version, product, niceName,
             blobOffset, blobLength,
@@ -104,7 +106,7 @@ public class ArchiveReader : BinaryReader
             folderDataOffset, folderDataCount,
             fileDataOffset, fileDataCount,
             stringOffset, stringLength,
-            blockSize
+            blockSize, signature
         );
     }
 
@@ -248,6 +250,6 @@ public class ArchiveReader : BinaryReader
             );
         }
 
-        return new Archive(archive.Header.NiceName, new[] { FromTocEntry(archive.Tocs.First(), null) });
+        return new Archive(archive.Header.NiceName, new[] { FromTocEntry(archive.Tocs.First(), null) }, archive.Header.Signature);
     }
 }
