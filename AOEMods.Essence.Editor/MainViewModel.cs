@@ -5,11 +5,13 @@ using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Win32;
+using Ookii.Dialogs.Wpf;
 using SixLabors.ImageSharp.Formats.Png;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor;
 
@@ -17,7 +19,8 @@ public record OpenStreamMessage(Stream Stream, string Extension);
 
 public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 {
-    public RelayCommand OpenArchiveCommand { get; }
+    public ICommand OpenFileDialogCommand { get; }
+    public ICommand OpenDirectoryDialogCommand { get; }
 
     public int SelectedTabIndex
     {
@@ -34,17 +37,67 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
 
     public MainViewModel()
     {
-        OpenArchiveCommand = new RelayCommand(OpenArchive);
+        OpenFileDialogCommand = new RelayCommand(OpenFileDialog);
+        OpenDirectoryDialogCommand = new RelayCommand(OpenDirectoryDialog);
 
-        WeakReferenceMessenger.Default.Register<OpenStreamMessage>(this);
+        WeakReferenceMessenger.Default.Register(this);
     }
 
-    public void OpenFile(string path)
+    public void Receive(OpenStreamMessage message)
     {
-        OpenStream(File.OpenRead(path), Path.GetExtension(path));
+        OpenStream(message.Stream, message.Extension);
     }
 
-    public void OpenStream(Stream stream, string extension)
+    public void OnDrop(IDataObject droppedObject)
+    {
+        if (droppedObject.GetDataPresent(DataFormats.FileDrop))
+        {
+            string[] files = (string[])droppedObject.GetData(DataFormats.FileDrop);
+            foreach (var file in files)
+            {
+                OpenFile(file);
+            }
+        }
+    }
+
+    private void OpenFileDialog()
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog()
+        {
+            Filter = "sga files (*.sga)|*.sga|rgd files (*.rgd)|*.rgd|rrtex files (*.rrtex)|*.rrtex|All files (*.*)|*.*",
+            RestoreDirectory = true
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            OpenFile(openFileDialog.FileName);
+        }
+    }
+
+    private void OpenFile(string filePath)
+    {
+        OpenStream(File.OpenRead(filePath), Path.GetExtension(filePath)); ;
+    }
+
+    private void OpenDirectoryDialog()
+    {
+        VistaFolderBrowserDialog dialog = new()
+        {
+            Description = "Select a directory to open as SGA archive"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            TabItems.Add(new ArchiveViewModel()
+            {
+                Archive = ArchiveReaderHelper.DirectoryToArchive(dialog.SelectedPath, "data")
+            });
+
+            SelectedTabIndex = TabItems.Count - 1;
+        }
+    }
+
+    private void OpenStream(Stream stream, string extension)
     {
         switch (extension)
         {
@@ -68,7 +121,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         SelectedTabIndex = TabItems.Count - 1;
     }
 
-    public void AddRgdTab(Stream stream)
+    private void AddRgdTab(Stream stream)
     {
         TabItems.Add(new GameDataViewModel()
         {
@@ -76,7 +129,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         });
     }
 
-    public void AddSgaTab(Stream stream)
+    private void AddSgaTab(Stream stream)
     {
         TabItems.Add(new ArchiveViewModel()
         {
@@ -84,30 +137,11 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         });
     }
 
-    public void AddRRTexTab(Stream stream)
+    private void AddRRTexTab(Stream stream)
     {
         TabItems.Add(new TextureViewModel()
         {
             ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).First()
         });
-    }
-
-    private void OpenArchive()
-    {
-        OpenFileDialog openFileDialog = new OpenFileDialog()
-        {
-            Filter = "sga files (*.sga)|*.sga|rgd files (*.rgd)|*.rgd|rrtex files (*.rrtex)|*.rrtex|All files (*.*)|*.*",
-            RestoreDirectory = true
-        };
-
-        if (openFileDialog.ShowDialog() == true)
-        {
-            OpenFile(openFileDialog.FileName);
-        }
-    }
-
-    public void Receive(OpenStreamMessage message)
-    {
-        OpenStream(message.Stream, message.Extension);
     }
 }

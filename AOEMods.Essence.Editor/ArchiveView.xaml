@@ -9,8 +9,9 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <DockPanel AllowDrop="True">
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar HorizontalAlignment="Left" Width="64">
+            <ToolBar HorizontalAlignment="Left">
                 <Button Content="Pack" Command="{Binding PackCommand}" />
+                <Button Content="Unpack" Command="{Binding UnpackCommand}" />
             </ToolBar>
         </ToolBarTray>
         <TreeView ItemsSource="{Binding RootChildren}">

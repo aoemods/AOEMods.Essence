@@ -27,49 +27,7 @@ namespace AOEMods.Essence.Editor
                 contextMenu.PlacementTarget is FrameworkElement element &&
                 element.DataContext is ArchiveItemViewModel itemViewModel)
             {
-                switch (itemViewModel.Node)
-                {
-                    case IArchiveFileNode file:
-                        {
-                            SaveFileDialog saveFileDialog = new SaveFileDialog()
-                            {
-                                Filter = $"*.{file.Extension}|All(*.*)",
-                                FileName = file.Name
-                            };
-                            if (saveFileDialog.ShowDialog() == true)
-                            {
-                                File.WriteAllBytes(saveFileDialog.FileName, file.GetData().ToArray());
-                            }
-                            break;
-                        }
-                    case IArchiveFolderNode:
-                        {
-                            var rootNode = itemViewModel.Node;
-                            string folderPath = ".";
-
-                            void ExportRecursive(IArchiveNode node)
-                            {
-                                if (node is IArchiveFileNode file)
-                                {
-                                    byte[] data = file.GetData().ToArray();
-                                    string relativePath = Path.GetRelativePath(rootNode.FullName, node.FullName);
-                                    string outPath = Path.Join(folderPath, rootNode.Name, relativePath);
-                                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-                                    File.WriteAllBytes(outPath, data);
-                                }
-                                else if (node is IArchiveFolderNode folderNode)
-                                {
-                                    foreach (var childNodeChild in folderNode.Children)
-                                    {
-                                        ExportRecursive(childNodeChild);
-                                    }
-                                }
-                            }
-
-                            ExportRecursive(rootNode);
-                            break;
-                        }
-                }
+                itemViewModel.ExportCommand.Execute(null);
             }
         }
 
@@ -80,7 +38,7 @@ namespace AOEMods.Essence.Editor
                 contextMenu.PlacementTarget is FrameworkElement element &&
                 element.DataContext is ArchiveItemViewModel itemViewModel)
             {
-                itemViewModel.Delete();
+                itemViewModel.DeleteCommand.Execute(null);
             }
         }
 

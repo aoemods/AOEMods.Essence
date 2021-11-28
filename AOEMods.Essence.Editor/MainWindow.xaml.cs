@@ -17,14 +17,7 @@ namespace AOEMods.Essence.Editor
 
         private void OnDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                foreach (var file in files)
-                {
-                    ViewModel.OpenFile(file);
-                }
-            }
+            ViewModel.OnDrop(e.Data);
         }
     }
 }

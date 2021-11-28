@@ -9,8 +9,9 @@
         Title="Archive Editor" Height="450" Width="800">
     <DockPanel AllowDrop="True" Drop="OnDrop">
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar HorizontalAlignment="Left" Width="64">
-                <Button Content="Open" Command="{Binding OpenArchiveCommand}" />
+            <ToolBar HorizontalAlignment="Left">
+                <Button Content="Open File" Command="{Binding OpenFileDialogCommand}" />
+                <Button Content="Open Directory" Command="{Binding OpenDirectoryDialogCommand}" />
             </ToolBar>
         </ToolBarTray>
         <TabControl ItemsSource="{Binding TabItems}" SelectedIndex="{Binding SelectedTabIndex}">
