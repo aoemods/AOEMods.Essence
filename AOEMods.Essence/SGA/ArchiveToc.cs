@@ -14,7 +14,7 @@ public class ArchiveToc : IArchiveToc
         Alias = alias;
         RootFolder = rootFolder;
 
-        var allNodes = ArchiveNodeHelper.EnumerateNodes(rootFolder);
+        var allNodes = (new[] { rootFolder }).Concat(ArchiveNodeHelper.EnumerateChildren(rootFolder));
         Files = allNodes.OfType<IArchiveFileNode>().ToArray();
         Folders = allNodes.OfType<IArchiveFolderNode>().ToArray();
     }

@@ -29,7 +29,7 @@ public static class Commands
         ArchiveReader archiveReader = new ArchiveReader(File.OpenRead(options.InputPath), Encoding.ASCII);
         var arch = archiveReader.ReadArchive();
 
-        var fileNodes = ArchiveNodeHelper.EnumerateNodes(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
+        var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
 
         foreach (var fileNode in fileNodes)
         {

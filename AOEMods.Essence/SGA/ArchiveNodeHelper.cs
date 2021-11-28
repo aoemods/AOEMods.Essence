@@ -2,44 +2,18 @@
 
 public static class ArchiveNodeHelper
 {
-    public static void TraverseBreadthFirst(IArchiveNode node, Action<IArchiveNode> visit)
+    public static IEnumerable<IArchiveNode> EnumerateChildren(IArchiveNode node)
     {
-        visit(node);
-
         if (node is IArchiveFolderNode folderNode)
         {
             foreach (IArchiveNode childNode in folderNode.Children)
             {
-                TraverseBreadthFirst(childNode, visit);
+                yield return childNode;
             }
-        }
-    }
 
-    public static IEnumerable<TResult> TraverseBreadthFirstWithResult<TResult>(IArchiveNode node, Func<IArchiveNode, TResult> visit)
-    {
-        yield return visit(node);
-
-        if (node is IArchiveFolderNode folderNode)
-        {
             foreach (IArchiveNode childNode in folderNode.Children)
             {
-                foreach (var childResult in TraverseBreadthFirstWithResult(childNode, visit))
-                {
-                    yield return childResult;
-                }
-            }
-        }
-    }
-
-    public static IEnumerable<IArchiveNode> EnumerateNodes(IArchiveNode node)
-    {
-        yield return node;
-
-        if (node is IArchiveFolderNode folderNode)
-        {
-            foreach (IArchiveNode childNode in folderNode.Children)
-            {
-                foreach (var childResult in EnumerateNodes(childNode))
+                foreach (var childResult in EnumerateChildren(childNode))
                 {
                     yield return childResult;
                 }
