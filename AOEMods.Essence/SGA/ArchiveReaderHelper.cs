@@ -12,7 +12,7 @@ public static class ArchiveReaderHelper
         IArchiveFolderNode DirectoryPathToNode(string directoryPath, IArchiveNode? parent)
         {
             var folderNode = new ArchiveFolderNode(
-                rootDirectoryPath == directoryPath ? "" : Path.GetRelativePath(rootDirectoryPath, directoryPath),
+                rootDirectoryPath == directoryPath ? "" : new DirectoryInfo(directoryPath).Name,
                 parent: parent
             );
 
