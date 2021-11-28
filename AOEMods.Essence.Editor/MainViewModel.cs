@@ -64,7 +64,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     {
         OpenFileDialog openFileDialog = new OpenFileDialog()
         {
-            Filter = "sga files (*.sga)|*.sga|rgd files (*.rgd)|*.rgd|rrtex files (*.rrtex)|*.rrtex|All files (*.*)|*.*",
+            Filter = "Essence files (*.sga, *.rgd, *.rrtex)|*.sga;*.rgd;*.rrtex|sga files (*.sga)|*.sga|rgd files (*.rgd)|*.rgd|rrtex files (*.rrtex)|*.rrtex|All files (*.*)|*.*",
             RestoreDirectory = true
         };
 

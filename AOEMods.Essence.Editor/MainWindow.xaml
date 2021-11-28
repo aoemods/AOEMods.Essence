@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AOEMods.Essence.Editor"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance local:MainViewModel, IsDesignTimeCreatable=True}"
-        Title="Archive Editor" Height="450" Width="800">
+        Title="AOEMods Essence Editor" Height="450" Width="800">
     <DockPanel AllowDrop="True" Drop="OnDrop">
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar HorizontalAlignment="Left">
