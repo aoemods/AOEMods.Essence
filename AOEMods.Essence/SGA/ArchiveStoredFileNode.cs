@@ -3,7 +3,7 @@
 public class ArchiveStoredFileNode : IArchiveFileNode
 {
     public IArchiveNode? Parent { get; }
-    public string Name { get; }
+    public string Name { get; set; }
     private byte[] data;
 
     public ArchiveStoredFileNode(string name, byte[] data, IArchiveNode? parent = null)

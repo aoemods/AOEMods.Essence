@@ -6,7 +6,7 @@ namespace AOEMods.Essence.SGA;
 public class ArchiveFileNode : IArchiveFileNode
 {
     public IArchiveNode? Parent { get; }
-    public string Name { get; }
+    public string Name { get; set; }
 
     private Stream dataStream;
     private long dataPosition;

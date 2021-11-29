@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:AOEMods.Essence.Editor"
              Startup="OnStartup">
     <Application.Resources>
-         
+        <local:BooleanToVisibilityConverter x:Key="BoolToVis" TrueValue="Visible" FalseValue="Collapsed" />
+        <local:BooleanToVisibilityConverter x:Key="NotBoolToVis" TrueValue="Collapsed" FalseValue="Visible" />
     </Application.Resources>
 </Application>

@@ -18,16 +18,23 @@
         <TreeView ItemsSource="{Binding RootChildren}">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArchiveItemViewModel}" ItemsSource="{Binding Children}">
-                    <Label Content="{Binding DisplayText}" MouseDoubleClick="OnItemDoubleClicked">
-                        <Label.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Open" Click="OnOpenClicked" />
-                                <MenuItem Header="Export" Click="OnExportClicked" />
-                                <MenuItem Header="Rename" />
-                                <MenuItem Header="Delete" Click="OnDeleteClicked" />
-                            </ContextMenu>
-                        </Label.ContextMenu>
-                    </Label>
+                    <Grid>
+                        <Label Visibility="{Binding Renaming, Converter={StaticResource NotBoolToVis}}"
+                               MouseDoubleClick="OnItemDoubleClicked" Content="{Binding Name}" >
+                            <Label.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add file" Click="OnAddFileClicked" />
+                                    <MenuItem Header="Open" Click="OnOpenClicked" />
+                                    <MenuItem Header="Export" Click="OnExportClicked" />
+                                    <MenuItem Header="Rename" Click="OnRenameClicked" />
+                                    <MenuItem Header="Delete" Click="OnDeleteClicked" />
+                                </ContextMenu>
+                            </Label.ContextMenu>
+                        </Label>
+                        <TextBox Visibility="{Binding Renaming, Converter={StaticResource BoolToVis}}"
+                                 LostFocus="OnItemTextBoxLostFocus" KeyDown="OnItemTextBoxKeyDown"
+                                 Text="{Binding RenamingName}"/>
+                    </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>

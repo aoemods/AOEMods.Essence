@@ -5,6 +5,7 @@ using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -15,7 +16,27 @@ namespace AOEMods.Essence.Editor
 {
     public class ArchiveItemViewModel : ObservableRecipient
     {
-        public string? DisplayText => Node?.Name;
+        public string? Name
+        {
+            get => name;
+            set => SetProperty(ref name, value);
+        }
+
+        private string? name = null;
+
+        public bool Renaming
+        {
+            get => renaming;
+            private set => SetProperty(ref renaming, value);
+        }
+
+        public string RenamingName
+        {
+            get => renamingName;
+            set => SetProperty(ref renamingName, value);
+        }
+
+        private string renamingName = "";
 
         public ObservableCollection<ArchiveItemViewModel>? Children
         {
@@ -33,10 +54,15 @@ namespace AOEMods.Essence.Editor
 
         private ObservableCollection<ArchiveItemViewModel>? children = null;
         private ArchiveItemViewModel? parentViewModel = null;
+        private bool renaming;
 
         public ICommand ExportCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand OpenCommand { get; }
+        public ICommand AddFileCommand { get; }
+        public ICommand StartRenamingCommand { get; }
+        public ICommand EndRenamingCommand { get; }
+        public ICommand CancelRenamingCommand { get; }
 
         public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel? parentViewModel)
         {
@@ -46,6 +72,10 @@ namespace AOEMods.Essence.Editor
             ExportCommand = new RelayCommand(Export);
             DeleteCommand = new RelayCommand(Delete);
             OpenCommand = new RelayCommand(Open);
+            AddFileCommand = new RelayCommand(AddFile);
+            StartRenamingCommand = new RelayCommand(StartRenaming);
+            CancelRenamingCommand = new RelayCommand(CancelRenaming);
+            EndRenamingCommand = new RelayCommand(EndRenaming);
         }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -61,6 +91,15 @@ namespace AOEMods.Essence.Editor
                 else
                 {
                     Children = null;
+                }
+
+                if (Node != null)
+                {
+                    Name = Node.Name;
+                }
+                else
+                {
+                    Name = null;
                 }
             }
         }
@@ -96,6 +135,51 @@ namespace AOEMods.Essence.Editor
                 {
                     folderNode.Children.Remove(Node);
                 }
+            }
+        }
+
+        private void AddFile()
+        {
+            if (Node != null && Node is IArchiveFolderNode folderNode)
+            {
+                OpenFileDialog dialog = new OpenFileDialog()
+                {
+                    Title = "Select file to add to the archive",
+                    Filter = "Essence files(*.sga, *.rgd, *.rrtex) | *.sga; *.rgd; *.rrtex | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | All files(*.*) | *.* "
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    IArchiveFileNode fileNode = new ArchiveStoredFileNode(Path.GetFileName(dialog.FileName), File.ReadAllBytes(dialog.FileName), folderNode);
+                    folderNode.Children.Add(fileNode);
+
+                    if (Children == null)
+                    {
+                        throw new Exception("Folder node view model Children was null");
+                    }
+
+                    Children.Add(new ArchiveItemViewModel(fileNode, this));
+                }
+            }
+        }
+
+        private void StartRenaming()
+        {
+            RenamingName = Name ?? "";
+            Renaming = true;
+        }
+
+        private void CancelRenaming()
+        {
+            Renaming = false;
+        }
+
+        private void EndRenaming()
+        {
+            if (Renaming)
+            {
+                Name = RenamingName;
+                Renaming = false;
             }
         }
     }

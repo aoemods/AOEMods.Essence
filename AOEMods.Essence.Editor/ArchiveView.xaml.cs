@@ -65,5 +65,52 @@ namespace AOEMods.Essence.Editor
                 itemViewModel.OpenCommand.Execute(null);
             }
         }
+
+        private void OnAddFileClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel)
+            {
+                itemViewModel.AddFileCommand.Execute(null);
+            }
+        }
+
+        private void OnRenameClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.Parent is ContextMenu contextMenu &&
+                contextMenu.PlacementTarget is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel)
+            {
+                itemViewModel.StartRenamingCommand.Execute(null);
+            }
+        }
+
+        private void OnItemTextBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel)
+            {
+                itemViewModel.CancelRenamingCommand.Execute(null);
+            }
+        }
+
+        private void OnItemTextBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TextBox textBox &&
+                textBox.DataContext is ArchiveItemViewModel itemViewModel)
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        itemViewModel.CancelRenamingCommand.Execute(null);
+                        break;
+                    case Key.Enter:
+                        textBox.GetBindingExpression(TextBox.TextProperty).UpdateSource();
+                        itemViewModel.EndRenamingCommand.Execute(null);
+                        break;
+                }
+            }
+        }
     }
 }
