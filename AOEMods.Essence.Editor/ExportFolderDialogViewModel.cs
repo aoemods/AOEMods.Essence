@@ -1,8 +1,6 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Ookii.Dialogs.Wpf;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Png;
 using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor;

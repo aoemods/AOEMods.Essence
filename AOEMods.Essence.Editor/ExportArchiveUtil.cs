@@ -1,9 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.SGA;
-using Microsoft.Win32;
 using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Png;
 using System;
 using System.IO;
 using System.Linq;

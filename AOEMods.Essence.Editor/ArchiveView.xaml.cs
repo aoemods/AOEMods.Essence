@@ -1,6 +1,5 @@
 ﻿using AOEMods.Essence.SGA;
 using Microsoft.Toolkit.Mvvm.Messaging;
-using Microsoft.Win32;
 using System.IO;
 using System.Linq;
 using System.Windows;

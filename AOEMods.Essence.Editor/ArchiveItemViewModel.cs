@@ -1,10 +1,8 @@
-﻿using AOEMods.Essence.Chunky;
-using AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.SGA;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Win32;
-using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

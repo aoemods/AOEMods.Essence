@@ -1,7 +1,6 @@
 ﻿using AOEMods.Essence.SGA;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.Globalization;
