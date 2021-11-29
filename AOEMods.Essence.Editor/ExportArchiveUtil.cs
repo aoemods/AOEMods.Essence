@@ -69,7 +69,7 @@ public static class ExportArchiveUtil
                 Path.GetDirectoryName(outPath),
                 options.ExportAllMips ?
                     $"{Path.GetFileNameWithoutExtension(outPath)}_mip{texture.Mip}.png" :
-                    outPath
+                    Path.ChangeExtension(outPath, ".png")
             );
 
             File.WriteAllBytes(mipOutPath, texture.Data);
@@ -100,7 +100,9 @@ public static class ExportArchiveUtil
         {
             if (childNode is IArchiveFileNode file)
             {
-                string relativePath = Path.GetRelativePath(node.FullName, childNode.FullName);
+                string relativePath = node.FullName == "" ?
+                    childNode.FullName :
+                    Path.GetRelativePath(node.FullName, childNode.FullName);
                 string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
                 Directory.CreateDirectory(Path.GetDirectoryName(outPath));
 
