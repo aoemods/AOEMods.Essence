@@ -137,6 +137,8 @@ public class ArchiveWriter : BinaryWriter
     public void Write(IArchive archive)
     {
         var toc = archive.Tocs[0];
+        toc.RebuildFromRootFolder();
+
         var rootFolder = toc.RootFolder;
         var fileNodes = toc.Files;
         var folderNodes = toc.Folders;
