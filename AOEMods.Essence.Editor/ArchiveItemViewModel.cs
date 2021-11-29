@@ -102,6 +102,11 @@ namespace AOEMods.Essence.Editor
                     Name = null;
                 }
             }
+
+            if (e.PropertyName == nameof(Name) && Name != null && Node != null)
+            {
+                Node.Name = Name;
+            }
         }
 
         private void Open()
