@@ -80,6 +80,8 @@ public class ArchiveReader : BinaryReader
 
         uint unknown2 = ReadUInt32(); // always 1?
 
+        byte[] signature = ReadBytes(256);
+
         BaseStream.Seek((long)blobOffset, SeekOrigin.Begin);
 
         uint tocDataOffset = ReadUInt32();
@@ -95,8 +97,6 @@ public class ArchiveReader : BinaryReader
         uint fileHashLength = ReadUInt32();
 
         uint blockSize = ReadUInt32();
-
-        byte[] signature = ReadBytes(256);
 
         return new ArchiveHeader(
             magic, version, product, niceName,

@@ -9,7 +9,7 @@ Join the AOE4 modding discord for information sharing, discussions or if you nee
 See [Releases page](https://github.com/aoemods/AOEMods.Essence/releases) for downloads.
 
 ## Screenshots
-** Load an sga archive, convert/export an rrtex file within it **
+**Load an sga archive, convert/export an rrtex file within it**
 
 ![](Media/ConvertTexture.png)
 
