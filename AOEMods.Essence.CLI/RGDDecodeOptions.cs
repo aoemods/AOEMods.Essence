@@ -12,5 +12,7 @@ public class RGDDecodeOptions
     public string OutputPath { get; set; }
     [Option('v', "verbose")]
     public bool Verbose { get; set; }
+    [Option('b', "batch")]
+    public bool Batch { get; set; }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

@@ -1,6 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.SGA;
+using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
@@ -87,13 +88,45 @@ public static class Commands
 
     public static int RGDDecode(RGDDecodeOptions options)
     {
-        using var rgdStream = File.Open(options.InputPath, FileMode.Open, FileAccess.Read);
+        static void ConvertFile(string path, string outputPath)
+        {
+            using var rgdStream = File.Open(path, FileMode.Open, FileAccess.Read);
+            var nodes = ReadFormat.RGD(rgdStream);
+            string json = GameDataJsonUtil.GameDataToJson(nodes);
 
-        var nodes = ReadFormat.RGD(rgdStream);
+            File.WriteAllText(outputPath, json);
+        }
 
-        string json = GameDataJsonUtil.GameDataToJson(nodes);
+        if (options.Batch)
+        {
+            Matcher matcher = new();
+            matcher.AddInclude("**/*.rgd");
+            var rgdPaths = matcher.GetResultsInFullPath(options.InputPath).ToArray();
+            Console.WriteLine("Found {0} files matching {1}", rgdPaths.Length, options.InputPath);
+            using (var progress = new ProgressBar())
+            {
+                int processed = 0;
+                foreach (var rgdPath in rgdPaths)
+                {
+                    var relativePath = Path.GetRelativePath(options.InputPath, rgdPath);
+                    var outRelativePath = Path.ChangeExtension(relativePath, "json");
+                    var outJsonPath = Path.Combine(options.OutputPath, outRelativePath);
+                    var directoryName = Path.GetDirectoryName(outJsonPath);
+                    if (directoryName != null)
+                    {
+                        Directory.CreateDirectory(directoryName);
+                    }
 
-        File.WriteAllText(options.OutputPath, json);
+                    ConvertFile(rgdPath, outJsonPath);
+                    processed++;
+                    progress.Report((double)processed / rgdPaths.Length);
+                }
+            }
+        }
+        else
+        {
+            ConvertFile(options.InputPath, options.OutputPath);
+        }
 
         return 0;
     }
