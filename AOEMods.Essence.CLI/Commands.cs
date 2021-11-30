@@ -40,6 +40,10 @@ public static class Commands
                 Console.WriteLine(fullName);
             }
             var outputFilePath = Path.Combine(options.OutputPath, fullName.Replace('\\', '/'));
+            if (options.Verbose)
+            {
+                Console.WriteLine("Writing {0} to {1}", fileNode.FullName, outputFilePath);
+            }
             var outputDirectory = Path.GetDirectoryName(outputFilePath);
             if (outputDirectory != null)
             {
