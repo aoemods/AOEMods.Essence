@@ -55,36 +55,85 @@ public static class Commands
         return 0;
     }
 
+    private static void BatchConvert(string inputDirectoryPath, string outputDirectoryPath, string pattern, string outputExtension, Action<string, string> convertFile)
+    {
+        Matcher matcher = new();
+        matcher.AddInclude(pattern);
+        var inputPaths = matcher.GetResultsInFullPath(inputDirectoryPath).ToArray();
+        Console.WriteLine("Found {0} files matching {1}", inputPaths.Length, inputDirectoryPath);
+        using (var progress = new ProgressBar())
+        {
+            int processed = 0;
+            foreach (var inputPath in inputPaths)
+            {
+                var relativePath = Path.GetRelativePath(inputDirectoryPath, inputPath);
+                var outRelativePath = Path.ChangeExtension(relativePath, outputExtension);
+                var outputPath = Path.Combine(outputDirectoryPath, outRelativePath);
+                var directoryName = Path.GetDirectoryName(outputPath);
+                if (directoryName != null)
+                {
+                    Directory.CreateDirectory(directoryName);
+                }
+
+                convertFile(inputPath, outputPath);
+                processed++;
+                progress.Report((double)processed / inputPaths.Length);
+            }
+        }
+    }
+
     public static int RRTexDecode(RRTexDecodeOptions options)
     {
-        using var rrtexStream = File.Open(options.InputPath, FileMode.Open, FileAccess.Read);
-
-        string extension = Path.GetExtension(options.OutputPath);
-
-        IImageFormat format = extension switch
+        void ConvertFile(string path, string outputPath)
         {
-            ".png" => PngFormat.Instance,
-            ".jpg" or ".jpeg" => JpegFormat.Instance,
-            ".bmp" => BmpFormat.Instance,
-            ".tga" => TgaFormat.Instance,
-            ".gif" => GifFormat.Instance,
-            _ => throw new NotSupportedException($"Output extension {extension} not supported")
-        };
+            using var rrtexStream = File.Open(path, FileMode.Open, FileAccess.Read);
 
-        if (options.AllMips)
-        {
-            string fileName = Path.GetFileName(options.OutputPath);
-            string directoryName = Path.GetDirectoryName(options.OutputPath);
+            string extension = Path.GetExtension(outputPath);
 
-            foreach (var texture in ReadFormat.RRTex(rrtexStream, format))
+            IImageFormat format = extension switch
             {
-                File.WriteAllBytes(Path.Join(directoryName, $"{texture.Mip}_{fileName}"), texture.Data);
+                ".png" => PngFormat.Instance,
+                ".jpg" or ".jpeg" => JpegFormat.Instance,
+                ".bmp" => BmpFormat.Instance,
+                ".tga" => TgaFormat.Instance,
+                ".gif" => GifFormat.Instance,
+                _ => throw new NotSupportedException($"Output extension {extension} not supported")
+            };
+
+            if (options.AllMips)
+            {
+                string fileName = Path.GetFileName(outputPath);
+                string directoryName = Path.GetDirectoryName(outputPath);
+
+                foreach (var texture in ReadFormat.RRTex(rrtexStream, format))
+                {
+                    File.WriteAllBytes(Path.Join(directoryName, $"{texture.Mip}_{fileName}"), texture.Data);
+                }
             }
+            else
+            {
+                try
+                {
+                    var texture = ReadFormat.RRTex(rrtexStream, format).First();
+                    File.WriteAllBytes(outputPath, texture.Data);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (options.Verbose)
+                    {
+                        Console.WriteLine("No textures could be decoded for {0}: {1}", path, ex);
+                    }
+                }
+            }
+        }
+
+        if (options.Batch)
+        {
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.rrtex", ".png", ConvertFile);
         }
         else
         {
-            var texture = ReadFormat.RRTex(rrtexStream, format).First();
-            File.WriteAllBytes(options.OutputPath, texture.Data);
+            ConvertFile(options.InputPath, options.OutputPath);
         }
 
         return 0;
@@ -103,29 +152,7 @@ public static class Commands
 
         if (options.Batch)
         {
-            Matcher matcher = new();
-            matcher.AddInclude("**/*.rgd");
-            var rgdPaths = matcher.GetResultsInFullPath(options.InputPath).ToArray();
-            Console.WriteLine("Found {0} files matching {1}", rgdPaths.Length, options.InputPath);
-            using (var progress = new ProgressBar())
-            {
-                int processed = 0;
-                foreach (var rgdPath in rgdPaths)
-                {
-                    var relativePath = Path.GetRelativePath(options.InputPath, rgdPath);
-                    var outRelativePath = Path.ChangeExtension(relativePath, "json");
-                    var outJsonPath = Path.Combine(options.OutputPath, outRelativePath);
-                    var directoryName = Path.GetDirectoryName(outJsonPath);
-                    if (directoryName != null)
-                    {
-                        Directory.CreateDirectory(directoryName);
-                    }
-
-                    ConvertFile(rgdPath, outJsonPath);
-                    processed++;
-                    progress.Report((double)processed / rgdPaths.Length);
-                }
-            }
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.rgd", ".json", ConvertFile);
         }
         else
         {
