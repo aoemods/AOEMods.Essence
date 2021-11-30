@@ -39,7 +39,7 @@ public static class Commands
             {
                 Console.WriteLine(fullName);
             }
-            var outputFilePath = Path.Join(options.OutputPath, fullName);
+            var outputFilePath = Path.Combine(options.OutputPath, fullName.Replace('\\', '/'));
             var outputDirectory = Path.GetDirectoryName(outputFilePath);
             if (outputDirectory != null)
             {
