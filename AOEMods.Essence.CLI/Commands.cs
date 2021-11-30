@@ -39,7 +39,7 @@ public static class Commands
             {
                 Console.WriteLine(fullName);
             }
-            var outputFilePath = Path.Combine(options.OutputPath, fullName.Replace('\\', '/'));
+            var outputFilePath = Path.Join(options.OutputPath, fullName.Replace('\\', '/'));
             if (options.Verbose)
             {
                 Console.WriteLine("Writing {0} to {1}", fileNode.FullName, outputFilePath);
