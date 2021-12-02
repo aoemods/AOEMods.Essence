@@ -15,7 +15,9 @@
                 <Button Content="Properties" Command="{Binding OpenPropertiesCommand}" />
             </ToolBar>
         </ToolBarTray>
-        <TreeView ItemsSource="{Binding RootChildren}">
+        <TreeView ItemsSource="{Binding RootChildren}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArchiveItemViewModel}" ItemsSource="{Binding Children}">
                     <Grid>
