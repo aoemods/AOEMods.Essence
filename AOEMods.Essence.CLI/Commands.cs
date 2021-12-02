@@ -115,7 +115,7 @@ public static class Commands
             {
                 try
                 {
-                    var texture = ReadFormat.RRTex(rrtexStream, format).First();
+                    var texture = ReadFormat.RRTex(rrtexStream, format).Last();
                     File.WriteAllBytes(outputPath, texture.Data);
                 }
                 catch (InvalidOperationException ex)

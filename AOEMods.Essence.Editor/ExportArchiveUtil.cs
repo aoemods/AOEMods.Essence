@@ -1,6 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRGeom;
+using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
 using SixLabors.ImageSharp.Formats;
 using System;
@@ -74,20 +75,38 @@ public static class ExportArchiveUtil
         }
 
         var textures = ReadFormat.RRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
-        foreach (var texture in textures)
+        if (options.ExportAllMips)
         {
-            var mipOutPath = Path.Combine(
-                Path.GetDirectoryName(outPath),
-                options.ExportAllMips ?
-                    $"{Path.GetFileNameWithoutExtension(outPath)}_mip{texture.Mip}.png" :
-                    Path.ChangeExtension(outPath, ".png")
-            );
-
-            File.WriteAllBytes(mipOutPath, texture.Data);
-
-            if (!options.ExportAllMips)
+            foreach (var texture in textures)
             {
-                break;
+                var mipOutPath = Path.Combine(
+                    Path.GetDirectoryName(outPath),
+                    $"{Path.GetFileNameWithoutExtension(outPath)}_mip{texture.Mip}.png"
+                );
+
+                File.WriteAllBytes(mipOutPath, texture.Data);
+            }
+        }
+        else
+        {
+            TextureMip? texture;
+            try
+            {
+                texture = textures.Last();
+            }
+            catch
+            {
+                texture = null;
+            }
+
+            if (texture.HasValue)
+            {
+                var mipOutPath = Path.Combine(
+                    Path.GetDirectoryName(outPath),
+                    Path.ChangeExtension(outPath, ".png")
+                );
+
+                File.WriteAllBytes(mipOutPath, texture.Value.Data);
             }
         }
     }
