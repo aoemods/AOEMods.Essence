@@ -144,7 +144,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     {
         TabItems.Add(new TextureViewModel()
         {
-            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).First(),
+            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).Last(),
             TabTitle = title,
         });
     }
