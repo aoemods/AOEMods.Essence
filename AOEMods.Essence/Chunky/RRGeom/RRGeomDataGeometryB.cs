@@ -2,7 +2,7 @@
 
 public record RRGeomDataGeometryBData(
     uint ElementCount, uint Unknown1, uint ElementDataLength, uint Unknown2,
-    Half[,] VertexPositions
+    Half[,] VertexPositions, float[,] VertexNormals, Half[,] VertexTextureCoordinates
 );
 
 public record RRGeomDataGeometryBIndices(

@@ -52,7 +52,7 @@ namespace AOEMods.Essence.Chunky
                         var geobData = RRGeomUtil.ReadDataGeometryBData(reader, geobHeaders[0]);
                         var geobIndices = RRGeomUtil.ReadDataGeometryBIndices(reader, geobHeaders[1]);
 
-                        yield return new GeometryObject(geobData.VertexPositions, geobIndices.Faces);
+                        yield return new GeometryObject(geobData.VertexPositions, geobData.VertexTextureCoordinates, geobData.VertexNormals, geobIndices.Faces);
                     }
                 }
             }
