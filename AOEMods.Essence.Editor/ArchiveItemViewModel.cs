@@ -153,7 +153,7 @@ namespace AOEMods.Essence.Editor
 
                 if (dialog.ShowDialog() == true)
                 {
-                    IArchiveFileNode fileNode = new ArchiveStoredFileNode(Path.GetFileName(dialog.FileName), File.ReadAllBytes(dialog.FileName), folderNode);
+                    IArchiveFileNode fileNode = new ArchiveMemoryFileNode(Path.GetFileName(dialog.FileName), File.ReadAllBytes(dialog.FileName), folderNode);
                     folderNode.Children.Add(fileNode);
 
                     if (Children == null)
