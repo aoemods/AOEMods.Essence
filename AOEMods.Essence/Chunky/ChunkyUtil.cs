@@ -12,4 +12,13 @@ public static class ChunkyUtil
         }
         return dictionary;
     }
+
+    public static IEnumerable<ChunkHeader> EnumerateChunkHeaders(ChunkyFileReader reader, ChunkHeader header)
+    {
+        reader.BaseStream.Position = header.DataPosition;
+        foreach (var childHeader in reader.ReadChunkHeaders(header.Length))
+        {
+            yield return childHeader;
+        }
+    }
 }

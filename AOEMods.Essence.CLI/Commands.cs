@@ -161,4 +161,50 @@ public static class Commands
 
         return 0;
     }
+
+    public static int RRGeomDecode(RRGeomDecodeOptions options)
+    {
+        static void ConvertFile(string path, string outputPath)
+        {
+            string fileName = Path.GetFileName(outputPath);
+            string directoryName = Path.GetDirectoryName(outputPath);
+
+            using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+            int objectIndex = 0;
+            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            {
+                // Write .obj file
+                using var streamWriter = new StreamWriter(File.Open(
+                    Path.Join(directoryName, $"{objectIndex}_{fileName}"),
+                    FileMode.Create
+                ));
+
+                var pos = geometryObject.VertexPositions;
+                var faces = geometryObject.Faces;
+
+                for (int i = 0; i < geometryObject.VertexPositions.GetLength(0); i++)
+                {
+                    streamWriter.Write($"v {pos[i, 0]} {pos[i, 1]} {pos[i, 2]}\n");
+                }
+
+                for (int i = 0; i < geometryObject.Faces.GetLength(0); i++)
+                {
+                    streamWriter.Write($"f {1 + faces[i, 0]} {1 + faces[i, 1]} {1 + faces[i, 2]}\n");
+                }
+
+                objectIndex++;
+            }
+        }
+
+        if (options.Batch)
+        {
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.rrgeom", ".obj", ConvertFile);
+        }
+        else
+        {
+            ConvertFile(options.InputPath, options.OutputPath);
+        }
+
+        return 0;
+    }
 }

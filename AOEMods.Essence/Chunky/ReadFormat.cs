@@ -1,5 +1,6 @@
 ﻿using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRTex;
+using AOEMods.Essence.Chunky.RRGeom;
 using BCnEncoder.Decoder;
 using BCnEncoder.ImageSharp;
 using BCnEncoder.Shared;
@@ -13,6 +14,50 @@ namespace AOEMods.Essence.Chunky
 {
     public static class ReadFormat
     {
+        public static IEnumerable<GeometryObject> RRGeom(Stream stream)
+        {
+            using var reader = new ChunkyFileReader(stream, Encoding.ASCII);
+            var fileHeader = reader.ReadChunkyFileHeader();
+
+            var rootHeaders = reader.ReadChunkHeaders();
+            var rootHeader = rootHeaders.Single();
+
+            var foldRrgoHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, rootHeader);
+
+            var dataNbmeHeader = foldRrgoHeaders.Single(header => header.Type == "DATA" && header.Name == "NBME");
+            var numberMeshes = RRGeomUtil.ReadDataNumber(reader, dataNbmeHeader);
+
+            foreach (var foldMeshHeader in foldRrgoHeaders.Where(header => header.Type == "FOLD" && header.Name == "MESH"))
+            {
+                var foldMeshHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldMeshHeader);
+                
+                var dataNbloHeader = foldMeshHeaders.Single(header => header.Type == "DATA" && header.Name == "NBLO");
+                var numberLods = RRGeomUtil.ReadDataNumber(reader, dataNbloHeader);
+
+                foreach (var foldLodHeader in foldMeshHeaders.Where(header => header.Type == "FOLD" && header.Name == "LOD "))
+                {
+                    var foldLodHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldLodHeader);
+
+                    var dataNbgoHeader = foldLodHeaders.Single(header => header.Type == "DATA" && header.Name == "NBGO");
+                    var numberGeometryObjects = RRGeomUtil.ReadDataNumber(reader, dataNbloHeader);
+
+                    foreach (var foldGeomHeader in foldLodHeaders.Where(header => header.Type == "FOLD" && header.Name == "GEOM"))
+                    {
+                        var foldGeomHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldGeomHeader);
+
+                        var dataGohdHeader = foldGeomHeaders.Single(header => header.Type == "DATA" && header.Name == "GOHD");
+                        var dataGohd = RRGeomUtil.ReadDataGeometryObjectHd(reader, dataGohdHeader);
+
+                        var geobHeaders = foldGeomHeaders.Where(header => header.Type == "DATA" && header.Name == "GEOB").ToArray();
+                        var geobData = RRGeomUtil.ReadDataGeometryBData(reader, geobHeaders[0]);
+                        var geobIndices = RRGeomUtil.ReadDataGeometryBIndices(reader, geobHeaders[1]);
+
+                        yield return new GeometryObject(geobData.VertexPositions, geobIndices.Faces);
+                    }
+                }
+            }
+        }
+
         public static IList<RGDNode> RGD(string rgdPath)
         {
             return RGD(File.Open(rgdPath, FileMode.Open));
