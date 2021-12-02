@@ -4,6 +4,24 @@ namespace AOEMods.Essence.Chunky.RRGeom;
 
 public static class RRGeomUtil
 {
+    public static void WriteGeometryObject(Stream stream, GeometryObject geometryObject)
+    {
+        var streamWriter = new StreamWriter(stream, Encoding.ASCII, leaveOpen: true);
+
+        var pos = geometryObject.VertexPositions;
+        var faces = geometryObject.Faces;
+
+        for (int i = 0; i < geometryObject.VertexPositions.GetLength(0); i++)
+        {
+            streamWriter.Write($"v {pos[i, 0]} {pos[i, 1]} {pos[i, 2]}\n");
+        }
+
+        for (int i = 0; i < geometryObject.Faces.GetLength(0); i++)
+        {
+            streamWriter.Write($"f {1 + faces[i, 0]} {1 + faces[i, 1]} {1 + faces[i, 2]}\n");
+        }
+    }
+
     public static uint ReadDataNumber(ChunkyFileReader reader, ChunkHeader header)
     {
         reader.BaseStream.Position = header.DataPosition;

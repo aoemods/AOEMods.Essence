@@ -148,7 +148,7 @@ namespace AOEMods.Essence.Editor
                 OpenFileDialog dialog = new OpenFileDialog()
                 {
                     Title = "Select file to add to the archive",
-                    Filter = "Essence files(*.sga, *.rgd, *.rrtex) | *.sga; *.rgd; *.rrtex | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | All files(*.*) | *.* "
+                    Filter = "Essence files(*.sga, *.rgd, *.rrtex, *.rrgeom) | *.sga; *.rgd; *.rrtex; *.rrgeom | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | rrgeom files(*.rrgeom) | *.rrgeom | All files(*.*) | *.* "
                 };
 
                 if (dialog.ShowDialog() == true)

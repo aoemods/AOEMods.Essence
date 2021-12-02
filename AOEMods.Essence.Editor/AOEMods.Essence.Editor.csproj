@@ -22,6 +22,9 @@
     <Compile Update="ExportFileDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="ExportRRGeomView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="ExportRgdView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -32,6 +35,10 @@
 
   <ItemGroup>
     <Page Update="ExportFileDialog.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ExportRRGeomView.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

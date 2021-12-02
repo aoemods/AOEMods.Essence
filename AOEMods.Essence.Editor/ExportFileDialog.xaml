@@ -15,6 +15,9 @@
         <DataTemplate DataType="{x:Type local:ExportRRTexViewModel}">
             <local:ExportRRTexView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type local:ExportRRGeomViewModel}">
+            <local:ExportRRGeomView />
+        </DataTemplate>
     </Window.Resources>
     <StackPanel>
         <DockPanel>

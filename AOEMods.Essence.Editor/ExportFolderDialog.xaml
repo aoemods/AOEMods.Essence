@@ -18,6 +18,7 @@
         <GroupBox Header="Conversion options">
             <StackPanel>
                 <local:ExportRRTexView DataContext="{Binding RRTexViewModel}" />
+                <local:ExportRRGeomView DataContext="{Binding RRGeomViewModel}" />
                 <local:ExportRgdView DataContext="{Binding RgdViewModel}" />
             </StackPanel>
         </GroupBox>

@@ -1,5 +1,6 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
+using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.SGA;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SixLabors.ImageSharp.Formats;
@@ -174,23 +175,12 @@ public static class Commands
             foreach (var geometryObject in ReadFormat.RRGeom(stream))
             {
                 // Write .obj file
-                using var streamWriter = new StreamWriter(File.Open(
+                using var fileStream = File.Open(
                     Path.Join(directoryName, $"{objectIndex}_{fileName}"),
                     FileMode.Create
-                ));
+                );
 
-                var pos = geometryObject.VertexPositions;
-                var faces = geometryObject.Faces;
-
-                for (int i = 0; i < geometryObject.VertexPositions.GetLength(0); i++)
-                {
-                    streamWriter.Write($"v {pos[i, 0]} {pos[i, 1]} {pos[i, 2]}\n");
-                }
-
-                for (int i = 0; i < geometryObject.Faces.GetLength(0); i++)
-                {
-                    streamWriter.Write($"f {1 + faces[i, 0]} {1 + faces[i, 1]} {1 + faces[i, 2]}\n");
-                }
+                RRGeomUtil.WriteGeometryObject(fileStream, geometryObject);
 
                 objectIndex++;
             }

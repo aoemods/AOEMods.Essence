@@ -8,6 +8,7 @@ namespace AOEMods.Essence.Editor;
 public class ExportFolderDialogViewModel : ObservableRecipient
 {
     public ExportRRTexViewModel RRTexViewModel { get; } = new();
+    public ExportRRGeomViewModel RRGeomViewModel { get; } = new();
     public ExportRgdViewModel RgdViewModel { get; } = new();
 
     public string OutputDirectoryPath

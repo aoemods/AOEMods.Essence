@@ -1,5 +1,6 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
+using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.SGA;
 using SixLabors.ImageSharp.Formats;
 using System;
@@ -8,6 +9,10 @@ using System.Linq;
 
 namespace AOEMods.Essence.Editor;
 
+public interface IExportRRGeomOptions
+{
+    public bool ConvertRRGeom { get; set; }
+}
 
 public interface IExportRRTexOptions
 {
@@ -21,7 +26,7 @@ public interface IExportRgdOptions
     public bool ConvertRgd { get; set; }
 }
 
-public interface IExportArchiveNodeOptions : IExportRRTexOptions, IExportRgdOptions
+public interface IExportArchiveNodeOptions : IExportRRTexOptions, IExportRRGeomOptions, IExportRgdOptions
 {
     public string OutputDirectoryPath
     {
@@ -35,14 +40,20 @@ public class ExportArchiveNodeOptions : IExportArchiveNodeOptions
     public bool ConvertRRTex { get => rrtexOptions.ConvertRRTex; set => rrtexOptions.ConvertRRTex = value; }
     public bool ExportAllMips { get => rrtexOptions.ExportAllMips; set => rrtexOptions.ExportAllMips = value; }
     public IImageFormat RRTexFormat { get => rrtexOptions.RRTexFormat; set => rrtexOptions.RRTexFormat = value; }
+    public bool ConvertRRGeom { get => rrgeomOptions.ConvertRRGeom; set => rrgeomOptions.ConvertRRGeom = value; }
     public bool ConvertRgd { get => rgdOptions.ConvertRgd; set => rgdOptions.ConvertRgd = value; }
     private readonly IExportRRTexOptions rrtexOptions;
+    private readonly IExportRRGeomOptions rrgeomOptions;
     private readonly IExportRgdOptions rgdOptions;
 
-    public ExportArchiveNodeOptions(string outputDirectoryPath, IExportRRTexOptions rrtexOptions, IExportRgdOptions rgdOptions)
+    public ExportArchiveNodeOptions(
+        string outputDirectoryPath, IExportRRTexOptions rrtexOptions,
+        IExportRRGeomOptions rrgeomOptions, IExportRgdOptions rgdOptions
+    )
     {
         OutputDirectoryPath = outputDirectoryPath;
         this.rrtexOptions = rrtexOptions;
+        this.rrgeomOptions = rrgeomOptions;
         this.rgdOptions = rgdOptions;
     }
 }
@@ -81,6 +92,32 @@ public static class ExportArchiveUtil
         }
     }
 
+    private static void ExportRRGeomNode(IArchiveFileNode node, string outPath, IExportRRGeomOptions options)
+    {
+        if (!options.ConvertRRGeom)
+        {
+            ExportRawNode(node, outPath);
+            return;
+        }
+
+        int objectIndex = 0;
+        foreach (var geometryObject in ReadFormat.RRGeom(new MemoryStream(node.GetData().ToArray())))
+        {
+            // Write .obj file
+            using var fileStream = File.Open(
+                Path.Combine(
+                    Path.GetDirectoryName(outPath),
+                    $"{Path.GetFileNameWithoutExtension(outPath)}_{objectIndex}.obj"
+                ),
+                FileMode.Create
+            );
+
+            RRGeomUtil.WriteGeometryObject(fileStream, geometryObject);
+
+            objectIndex++;
+        }
+    }
+
     private static void ExportRgdNode(IArchiveFileNode node, string outPath, IExportRgdOptions options)
     {
         if (!options.ConvertRgd)
@@ -110,6 +147,9 @@ public static class ExportArchiveUtil
                 {
                     case ".rrtex":
                         ExportRRTexNode(file, outPath, options);
+                        break;
+                    case ".rrgeom":
+                        ExportRRGeomNode(file, outPath, options);
                         break;
                     case ".rgd":
                         ExportRgdNode(file, outPath, options);
@@ -142,6 +182,7 @@ public static class ExportArchiveUtil
                     ExportFileDialog dialog = new(file.Extension switch
                     {
                         ".rrtex" => new ExportRRTexViewModel(),
+                        ".rrgeom" => new ExportRRGeomViewModel(),
                         ".rgd" => new ExportRgdViewModel(),
                         _ => null
                     })
@@ -157,6 +198,9 @@ public static class ExportArchiveUtil
                         {
                             case IExportRRTexOptions rrtexOptions:
                                 ExportRRTexNode(file, outPath, rrtexOptions);
+                                break;
+                            case IExportRRGeomOptions rrgeomOptions:
+                                ExportRRGeomNode(file, outPath, rrgeomOptions);
                                 break;
                             case IExportRgdOptions rgdOptions:
                                 ExportRgdNode(file, outPath, rgdOptions);
@@ -184,6 +228,7 @@ public static class ExportArchiveUtil
                         ExportArchiveNode(node, new ExportArchiveNodeOptions(
                             dialog.ViewModel.OutputDirectoryPath,
                             dialog.ViewModel.RRTexViewModel,
+                            dialog.ViewModel.RRGeomViewModel,
                             dialog.ViewModel.RgdViewModel
                         ));
                     }
