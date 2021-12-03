@@ -19,7 +19,7 @@ A number of Age of Empires 4 / Essence formats are supported right now and more 
 ### Supported formats
 - sga: Read, Convert (unpack into directory), Write
 - rrtex: Read, Convert (most common image formats)
-- rrgeom: Read (vertex positions and faces), Convert (obj, no viewer in editor yet, but can convert from within an archive or folder)
+- rrgeom: Read (vertex positions, normals, texture coordinates and faces), Convert (obj)
 - rgd: Read, Convert (json)
 
 ### Editor

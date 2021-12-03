@@ -111,6 +111,9 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
             case ".rrtex":
                 AddRRTexTab(stream, title);
                 break;
+            case ".rrgeom":
+                AddRRGeomTab(stream, title);
+                break;
             default:
                 MessageBox.Show(
                     $"Unsupported extension '{extension}'", "Unsupported extension",
@@ -145,6 +148,14 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         TabItems.Add(new TextureViewModel()
         {
             ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).Last(),
+            TabTitle = title,
+        });
+    }
+    private void AddRRGeomTab(Stream stream, string title)
+    {
+        TabItems.Add(new GeometryObjectViewModel()
+        {
+            GeometryObject = ReadFormat.RRGeom(stream).First(),
             TabTitle = title,
         });
     }

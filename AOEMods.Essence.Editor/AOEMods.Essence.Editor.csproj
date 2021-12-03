@@ -28,6 +28,9 @@
     <Compile Update="ExportRgdView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="GeometryObjectView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="TextureView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -43,6 +46,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="ExportRgdView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="GeometryObjectView.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
