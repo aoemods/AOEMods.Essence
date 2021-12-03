@@ -12,6 +12,7 @@ See [Releases page](https://github.com/aoemods/AOEMods.Essence/releases) for dow
 **Load an sga archive, convert/export an rrtex file within it**
 
 ![](Media/ConvertTexture.png)
+![](Media/ConvertModel.png)
 
 ## Usage
 A number of Age of Empires 4 / Essence formats are supported right now and more are being worked on.
