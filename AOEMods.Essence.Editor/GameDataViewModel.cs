@@ -43,6 +43,7 @@ public class GameDataViewModel : TabItemViewModel
             SaveFileDialog saveFileDialog = new SaveFileDialog()
             {
                 Filter = $"json (*.json)|*.json|All files (*.*)|*.*",
+                FileName = "data.json",
             };
 
             if (saveFileDialog.ShowDialog() == true)

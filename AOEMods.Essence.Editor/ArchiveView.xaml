@@ -21,7 +21,7 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArchiveItemViewModel}" ItemsSource="{Binding Children}">
                     <Grid>
-                        <Label Visibility="{Binding Renaming, Converter={StaticResource NotBoolToVis}}"
+                        <Label Padding="0" Visibility="{Binding Renaming, Converter={StaticResource NotBoolToVis}}"
                                MouseDoubleClick="OnItemDoubleClicked" Content="{Binding Name}" >
                             <Label.ContextMenu>
                                 <ContextMenu>
