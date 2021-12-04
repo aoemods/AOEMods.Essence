@@ -9,11 +9,50 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO.Compression;
 using System.Text;
+using AOEMods.Essence.Chunky.RRMaterial;
 
 namespace AOEMods.Essence.Chunky
 {
     public static class ReadFormat
     {
+        public static IEnumerable<Material> RRMaterial(Stream stream)
+        {
+            using var reader = new ChunkyFileReader(stream, Encoding.ASCII);
+
+            var chunky = reader.ReadChunky();
+            var materialNodes = chunky.RootNodes.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "GMat");
+
+            foreach (var materialNode in materialNodes)
+            {
+                var matPNode = materialNode.Children.OfType<IChunkyFolderNode>().Single(node => node.Header.Name == "MatP");
+                var pbNodes = matPNode.Children.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "\0\0Pb");
+                foreach (var pbNode in pbNodes)
+                {
+                    var pbTextureNode = pbNode.Children.OfType<IChunkyDataNode>().Single(node => node.Header.Name == "PbTe");
+
+                    reader.BaseStream.Position = pbTextureNode.Header.DataPosition;
+
+                    uint textureCount = reader.ReadUInt32();
+                    var textures = new Dictionary<string, string>((int)textureCount);
+
+                    for (uint i = 0; i < textureCount; i++)
+                    {
+                        uint keyLength = reader.ReadUInt32();
+                        string key = Encoding.UTF8.GetString(reader.ReadBytes((int)keyLength));
+                        uint valueLength = reader.ReadUInt32();
+                        string value = Encoding.UTF8.GetString(reader.ReadBytes((int)valueLength));
+                        if (textures.ContainsKey(key) && textures[key] != value)
+                        {
+                            throw new Exception($"Textures already contains key {key} but does not match value {value}");
+                        }
+                        textures[key] = value;
+                    }
+
+                    yield return new Material(new RRMaterialPbTextures(textures));
+                }
+            }
+        }
+
         public static IEnumerable<GeometryObject> RRGeom(Stream stream)
         {
             using var reader = new ChunkyFileReader(stream, Encoding.ASCII);
