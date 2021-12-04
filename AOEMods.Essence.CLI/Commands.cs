@@ -3,12 +3,18 @@ using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.SGA;
 using Microsoft.Extensions.FileSystemGlobbing;
+using SharpGLTF.Geometry;
+using SharpGLTF.Geometry.VertexTypes;
+using SharpGLTF.Materials;
+using SharpGLTF.Memory;
+using SharpGLTF.Schema2;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
+using System.Numerics;
 using System.Text;
 
 namespace AOEMods.Essence.CLI;
@@ -189,6 +195,147 @@ public static class Commands
         if (options.Batch)
         {
             BatchConvert(options.InputPath, options.OutputPath, "**/*.rrgeom", ".obj", ConvertFile);
+        }
+        else
+        {
+            ConvertFile(options.InputPath, options.OutputPath);
+        }
+
+        return 0;
+    }
+
+    public static int ModelExport(ModelExportOptions options)
+    {
+        string materialDirectory = string.IsNullOrEmpty(options.MaterialInputPath) ?
+            (Path.GetDirectoryName(options.InputPath) ?? ".") :
+            options.MaterialInputPath;
+
+        string textureDirectory = string.IsNullOrEmpty(options.TextureInputPath) ?
+            materialDirectory :
+            options.TextureInputPath;
+
+        bool TryFindMaterialPath(string path, out string materialPath)
+        {
+            materialPath = Path.Combine(materialDirectory, Path.ChangeExtension(Path.GetRelativePath(options.InputPath, path), ".rrmaterial"));
+            if (File.Exists(materialPath))
+            {
+                return true;
+            }
+
+            materialPath = Path.ChangeExtension(path, ".rrmaterial");
+            if (File.Exists(materialPath))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        void ConvertFile(string path, string outputPath)
+        {
+            MaterialBuilder material;
+            if (options.WithMaterial)
+            {
+                if (!TryFindMaterialPath(path, out var materialPath))
+                {
+                    material = MaterialBuilder.CreateDefault();
+                    if (options.Verbose)
+                    {
+                        Console.WriteLine("Could not find material file at {0} for {1}", materialPath, path);
+                    }
+                }
+                else
+                {
+                    using var materialStream = File.OpenRead(materialPath);
+                    var materials = ReadFormat.RRMaterial(materialStream).ToArray();
+                    var texturePaths = materials.First(mat => mat.LodTextures.Textures.ContainsKey("albedoTexture") || mat.LodTextures.Textures.ContainsKey("albedoTex")).LodTextures.Textures;
+
+                    var albedoPath = Path.Combine(textureDirectory, texturePaths.ContainsKey("albedoTexture") ? texturePaths["albedoTexture"] : texturePaths["albedoTex"]);
+                    using var albedoStream = File.OpenRead(albedoPath);
+                    var albedoTexture = ReadFormat.RRTex(albedoStream, PngFormat.Instance).Last();
+
+                    material = new MaterialBuilder()
+                        .WithMetallicRoughnessShader()
+                        .WithChannelImage(KnownChannel.BaseColor, albedoTexture.Data);
+
+                    var normalPath = Path.Combine(textureDirectory, texturePaths["normalMap"]);
+                    if (File.Exists(normalPath))
+                    {
+                        using var normalStream = File.OpenRead(normalPath);
+                        var normalTexture = ReadFormat.RRTex(normalStream, PngFormat.Instance, ReadFormat.RRTexType.NormalMap).Last();
+                        normalStream.Position = 0;
+                        var metalTexture = ReadFormat.RRTex(normalStream, PngFormat.Instance, ReadFormat.RRTexType.Metal).Last();
+
+                        material = material
+                            .WithNormal(normalTexture.Data)
+                            .WithMetallicRoughness(metalTexture.Data);
+                    }
+                }
+            }
+            else
+            {
+                material = MaterialBuilder.CreateDefault();
+            }
+
+            string fileName = Path.GetFileName(outputPath);
+            string directoryName = Path.GetDirectoryName(outputPath) ?? ".";
+
+            using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+            int objectIndex = 0;
+            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            {
+                var meshBuilder = VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>.CreateCompatibleMesh();
+                var primitive = meshBuilder.UsePrimitive(material);
+
+                var verts = new VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>[geometryObject.VertexPositions.GetLength(0)];
+                for (int i = 0; i < geometryObject.VertexPositions.GetLength(0); i++)
+                {
+                    verts[i] = VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>
+                        .Create(
+                            new Vector3(
+                                (float)geometryObject.VertexPositions[i, 0],
+                                (float)geometryObject.VertexPositions[i, 1],
+                                (float)geometryObject.VertexPositions[i, 2]
+                            ),
+                            new Vector3(
+                                geometryObject.VertexNormals[i, 0],
+                                geometryObject.VertexNormals[i, 1],
+                                geometryObject.VertexNormals[i, 2]
+                            )
+                        ).WithMaterial(new Vector2(
+                            (float)geometryObject.VertexTextureCoordinates[i, 0],
+                            (float)geometryObject.VertexTextureCoordinates[i, 1]
+                        ));
+                }
+
+                for (int i = 0; i < geometryObject.Faces.GetLength(0); i++)
+                {
+                    primitive.AddTriangle(
+                        verts[geometryObject.Faces[i, 0]],
+                        verts[geometryObject.Faces[i, 1]],
+                        verts[geometryObject.Faces[i, 2]]
+                    );
+                }
+                primitive.Validate();
+
+                var model = ModelRoot.CreateModel();
+                var mesh = model.CreateMeshes(meshBuilder).Single();
+                var scene = model.UseScene(0);
+                scene.CreateNode().WithMesh(mesh);
+
+                using var fileStream = File.Open(
+                    Path.Join(directoryName, $"{objectIndex}_{fileName}"),
+                    FileMode.Create
+                );
+                model.WriteGLB(fileStream);
+
+                objectIndex++;
+            }
+        }
+
+        if (options.Batch)
+        {
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.rrgeom", ".glb", ConvertFile);
         }
         else
         {
