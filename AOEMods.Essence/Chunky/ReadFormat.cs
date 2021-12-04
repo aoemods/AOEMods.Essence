@@ -146,7 +146,15 @@ namespace AOEMods.Essence.Chunky
             return kvs.KeyValues.Select(kv => makeNode(kv.Key, kv.Value, keysInv)).ToArray();
         }
 
-        public static IEnumerable<TextureMip> RRTex(Stream rrtexStream, IImageFormat outputFormat)
+        public enum RRTexType
+        {
+            Generic,
+            NormalMap,
+            Metal,
+            Pattern,
+        };
+
+        public static IEnumerable<TextureMip> RRTex(Stream rrtexStream, IImageFormat outputFormat, RRTexType textureType = RRTexType.Generic)
         {
             var reader = new ChunkyFileReader(rrtexStream, Encoding.ASCII);
             var fileHeader = reader.ReadChunkyFileHeader();
@@ -282,6 +290,38 @@ namespace AOEMods.Essence.Chunky
                             }
 
                             Image<Rgba32> image = decoder.DecodeRawToImageRgba32(data.ToArray(), w, h, format);
+
+                            switch (textureType)
+                            {
+                                case RRTexType.NormalMap:
+                                    for (int x = 0; x < image.Width; x++)
+                                    {
+                                        for (int y = 0; y < image.Height; y++)
+                                        {
+                                            image[x, y] = new Rgba32(image[x, y].A, image[x, y].G, image[x, y].B, 255);
+                                        }
+                                    }
+                                    break;
+                                case RRTexType.Metal:
+                                    for (int x = 0; x < image.Width; x++)
+                                    {
+                                        for (int y = 0; y < image.Height; y++)
+                                        {
+                                            image[x, y] = new Rgba32(image[x, y].R, 127, 0, 255);
+                                        }
+                                    }
+                                    break;
+                                case RRTexType.Pattern:
+                                    for (int x = 0; x < image.Width; x++)
+                                    {
+                                        for (int y = 0; y < image.Height; y++)
+                                        {
+                                            image[x, y] = new Rgba32(image[x, y].R, 0, 0, 255);
+                                        }
+                                    }
+                                    break;
+                            }
+
                             MemoryStream outputStream = new();
                             image.Save(outputStream, outputFormat);
                             yield return new TextureMip(i, outputStream.ToArray());
