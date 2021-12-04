@@ -64,7 +64,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     {
         OpenFileDialog openFileDialog = new OpenFileDialog()
         {
-            Filter = "Essence files(*.sga, *.rgd, *.rrtex, *.rrgeom) | *.sga; *.rgd; *.rrtex; *.rrgeom | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | rrgeom files(*.rrgeom) | *.rrgeom | All files(*.*) | *.*",
+            Filter = "Essence files(*.sga, *.rgd, *.rrtex, *.rrgeom, *.rrmaterial) | *.sga; *.rgd; *.rrtex; *.rrgeom; *.rrmaterial; | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | rrgeom files(*.rrgeom) | *.rrgeom | rrmaterial files(*.rrmaterial) | *.rrmaterial | All files(*.*) | *.*",
             RestoreDirectory = true
         };
 
@@ -114,6 +114,9 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
             case ".rrgeom":
                 AddRRGeomTab(stream, title);
                 break;
+            case ".rrmaterial":
+                AddChunkyTab(stream, title);
+                break;
             default:
                 MessageBox.Show(
                     $"Unsupported extension '{extension}'", "Unsupported extension",
@@ -156,6 +159,15 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         TabItems.Add(new GeometryObjectViewModel()
         {
             GeometryObject = ReadFormat.RRGeom(stream).First(),
+            TabTitle = title,
+        });
+    }
+
+    private void AddChunkyTab(Stream stream, string title)
+    {
+        TabItems.Add(new ChunkyViewModel()
+        {
+            ChunkyFile = (new ChunkyFileReader(stream)).ReadChunky(),
             TabTitle = title,
         });
     }

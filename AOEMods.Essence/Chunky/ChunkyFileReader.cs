@@ -54,6 +54,12 @@ public class ChunkyFileReader : BinaryReader
         );
     }
 
+    public ChunkyFile ReadChunky()
+    {
+        var fileHeader = ReadChunkyFileHeader();
+        return new ChunkyFile(fileHeader, BaseStream, BaseStream.Position, BaseStream.Length - BaseStream.Position);
+    }
+
     public string ReadCString()
     {
         List<char> chars = new List<char>();
@@ -143,5 +149,28 @@ public class ChunkyFileReader : BinaryReader
         }
 
         return new KeysDataChunk(stringKeys);
+    }
+
+    public IEnumerable<IChunkyNode> ReadNodes()
+    {
+        return ReadNodes(BaseStream.Length - BaseStream.Position);
+    }
+
+    public IEnumerable<IChunkyNode> ReadNodes(long length)
+    {
+        foreach (var header in ReadChunkHeaders(length))
+        {
+            switch (header.Type)
+            {
+                case "FOLD":
+                    yield return new ChunkyFolderNode(header, BaseStream);
+                    break;
+                case "DATA":
+                    yield return new ChunkyFileNode(header, BaseStream);
+                    break;
+                default:
+                    throw new Exception($"Unknown chunk type {header.Type}");
+            }
+        }
     }
 }

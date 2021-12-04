@@ -28,6 +28,9 @@
                 <DataTemplate DataType="{x:Type local:GeometryObjectViewModel}">
                     <local:GeometryObjectView />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ChunkyViewModel}">
+                    <local:ChunkyView />
+                </DataTemplate>
             </TabControl.Resources>
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="local:TabItemViewModel">

@@ -19,38 +19,32 @@ namespace AOEMods.Essence.Chunky
             using var reader = new ChunkyFileReader(stream, Encoding.ASCII);
             var fileHeader = reader.ReadChunkyFileHeader();
 
-            var rootHeaders = reader.ReadChunkHeaders();
-            var rootHeader = rootHeaders.Single();
+            var rootNodes = reader.ReadNodes();
+            var rootNode = (IChunkyFolderNode)rootNodes.Single();
 
-            var foldRrgoHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, rootHeader);
+            var rrgoNodes = rootNode.Children;
 
-            var dataNbmeHeader = foldRrgoHeaders.Single(header => header.Type == "DATA" && header.Name == "NBME");
-            var numberMeshes = RRGeomUtil.ReadDataNumber(reader, dataNbmeHeader);
+            var numberMeshesNode = rrgoNodes.OfType<IChunkyDataNode>().Single(node => node.Header.Name == "NBME");
+            var numberMeshes = RRGeomUtil.ReadDataNumber(reader, numberMeshesNode.Header);
 
-            foreach (var foldMeshHeader in foldRrgoHeaders.Where(header => header.Type == "FOLD" && header.Name == "MESH"))
+            foreach (var meshNode in rrgoNodes.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "MESH"))
             {
-                var foldMeshHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldMeshHeader);
-                
-                var dataNbloHeader = foldMeshHeaders.Single(header => header.Type == "DATA" && header.Name == "NBLO");
-                var numberLods = RRGeomUtil.ReadDataNumber(reader, dataNbloHeader);
+                var numberLodsNode = meshNode.Children.OfType<IChunkyDataNode>().Single(node => node.Header.Name == "NBLO");
+                var numberLods = RRGeomUtil.ReadDataNumber(reader, numberLodsNode.Header);
 
-                foreach (var foldLodHeader in foldMeshHeaders.Where(header => header.Type == "FOLD" && header.Name == "LOD "))
+                foreach (var lodNode in meshNode.Children.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "LOD "))
                 {
-                    var foldLodHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldLodHeader);
+                    var numberGeometryObjectsNode = lodNode.Children.OfType<IChunkyDataNode>().Single(node => node.Header.Name == "NBGO");
+                    var numberGeometryObjects = RRGeomUtil.ReadDataNumber(reader, numberGeometryObjectsNode.Header);
 
-                    var dataNbgoHeader = foldLodHeaders.Single(header => header.Type == "DATA" && header.Name == "NBGO");
-                    var numberGeometryObjects = RRGeomUtil.ReadDataNumber(reader, dataNbloHeader);
-
-                    foreach (var foldGeomHeader in foldLodHeaders.Where(header => header.Type == "FOLD" && header.Name == "GEOM"))
+                    foreach (var geometryNode in lodNode.Children.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "GEOM"))
                     {
-                        var foldGeomHeaders = ChunkyUtil.EnumerateChunkHeaders(reader, foldGeomHeader);
+                        var gohdNode = geometryNode.Children.OfType<IChunkyDataNode>().Single(node => node.Header.Name == "GOHD");
+                        var gohd = RRGeomUtil.ReadDataGeometryObjectHd(reader, gohdNode.Header);
 
-                        var dataGohdHeader = foldGeomHeaders.Single(header => header.Type == "DATA" && header.Name == "GOHD");
-                        var dataGohd = RRGeomUtil.ReadDataGeometryObjectHd(reader, dataGohdHeader);
-
-                        var geobHeaders = foldGeomHeaders.Where(header => header.Type == "DATA" && header.Name == "GEOB").ToArray();
-                        var geobData = RRGeomUtil.ReadDataGeometryBData(reader, geobHeaders[0]);
-                        var geobIndices = RRGeomUtil.ReadDataGeometryBIndices(reader, geobHeaders[1]);
+                        var geobNodes = geometryNode.Children.OfType<IChunkyDataNode>().Where(node => node.Header.Name == "GEOB").ToArray();
+                        var geobData = RRGeomUtil.ReadDataGeometryBData(reader, geobNodes[0].Header);
+                        var geobIndices = RRGeomUtil.ReadDataGeometryBIndices(reader, geobNodes[1].Header);
 
                         yield return new GeometryObject(geobData.VertexPositions, geobData.VertexTextureCoordinates, geobData.VertexNormals, geobIndices.Faces);
                     }
