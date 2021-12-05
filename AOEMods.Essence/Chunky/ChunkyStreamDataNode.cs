@@ -2,9 +2,9 @@
 
 namespace AOEMods.Essence.Chunky;
 
-public class ChunkyFileNode : ChunkyNode, IChunkyDataNode
+public class ChunkyStreamDataNode : ChunkyNode, IChunkyDataNode
 {
-    public ChunkyFileNode(ChunkHeader header, Stream dataStream)
+    public ChunkyStreamDataNode(ChunkHeader header, Stream dataStream)
         : base(header, dataStream)
     {
     }

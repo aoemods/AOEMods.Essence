@@ -79,78 +79,6 @@ public class ChunkyFileReader : BinaryReader
         return new string(chars.ToArray());
     }
 
-    private object ReadType(int type)
-    {
-        return type switch
-        {
-            0 => ReadSingle(),
-            1 => ReadInt32(),
-            2 => ReadBoolean(),
-            3 => ReadCString(),
-            100 => ReadChunkyList(),
-            101 => ReadChunkyList(),
-            _ => throw new Exception($"Unknown type {type}")
-        };
-    }
-
-    private ChunkyList ReadChunkyList()
-    {
-        int length = ReadInt32();
-
-        // Read table index
-        var keyTypeAndDataIndex = new (ulong key, int Type, int index)[length];
-        for (int i = 0; i < length; i++)
-        {
-            ulong key = ReadUInt64();
-            int type = ReadInt32();
-            int index = ReadInt32();
-            keyTypeAndDataIndex[i] = (key, type, index);
-        }
-
-        // Read table row data
-        long dataPosition = BaseStream.Position;
-
-        ChunkyList kvs = new();
-        foreach (var (key, type, index) in keyTypeAndDataIndex)
-        {
-            BaseStream.Position = dataPosition + index;
-            kvs.Add(new KeyValueEntry(key, ReadType(type)));
-        }
-
-        return kvs;
-    }
-
-    public KeyValueDataChunk ReadKeyValueDataChunk(ChunkHeader header)
-    {
-        BaseStream.Position = header.DataPosition;
-
-        int unknown = ReadInt32();
-        var table = ReadChunkyList();
-
-        return new KeyValueDataChunk(table);
-    }
-
-    public KeysDataChunk ReadKeysDataChunk(ChunkHeader header)
-    {
-        BaseStream.Position = header.DataPosition;
-
-        Dictionary<string, ulong> stringKeys = new();
-
-        int count = ReadInt32();
-
-        for (int i = 0; i < count; i++)
-        {
-            ulong key = ReadUInt64();
-
-            int stringLength = ReadInt32();
-            string str = new string(ReadChars(stringLength));
-
-            stringKeys.Add(str, key);
-        }
-
-        return new KeysDataChunk(stringKeys);
-    }
-
     public IEnumerable<IChunkyNode> ReadNodes()
     {
         return ReadNodes(BaseStream.Length - BaseStream.Position);
@@ -166,7 +94,7 @@ public class ChunkyFileReader : BinaryReader
                     yield return new ChunkyFolderNode(header, BaseStream);
                     break;
                 case "DATA":
-                    yield return new ChunkyFileNode(header, BaseStream);
+                    yield return new ChunkyStreamDataNode(header, BaseStream);
                     break;
                 default:
                     throw new Exception($"Unknown chunk type {header.Type}");

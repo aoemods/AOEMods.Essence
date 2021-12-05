@@ -9,5 +9,9 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <CheckBox IsChecked="{Binding ConvertRgd}">Convert Rgd</CheckBox>
+        <ComboBox IsEnabled="{Binding ConvertRgd}" SelectedIndex="{Binding FormatIndex}">
+            <ComboBoxItem>xml</ComboBoxItem>
+            <ComboBoxItem>json</ComboBoxItem>
+        </ComboBox>
     </StackPanel>
 </UserControl>

@@ -126,24 +126,24 @@ namespace AOEMods.Essence.Chunky
                 throw new Exception("More than one DATA AEGD chunk present");
             }
 
-            var keys = reader.ReadKeysDataChunk(keysHeaders[0]);
-            var kvs = reader.ReadKeyValueDataChunk(kvsHeaders[0]);
+            var keys = RGDUtil.ReadKeysDataChunk(reader, keysHeaders[0]);
+            var kvs = RGDUtil.ReadKeyValueDataChunk(reader, kvsHeaders[0]);
 
             var keysInv = ChunkyUtil.ReverseReadOnlyDictionary(keys.StringKeys);
 
-            static RGDNode makeNode(ulong key, object value, IReadOnlyDictionary<ulong, string> keysInv)
+            static RGDNode MakeNode(ulong key, object value, IReadOnlyDictionary<ulong, string> keysInv)
             {
                 string keyStr = keysInv[key];
 
                 if (value is ChunkyList table)
                 {
-                    return new RGDNode(keyStr, table.Select(listItem => makeNode(listItem.Key, listItem.Value, keysInv)).ToArray());
+                    return new RGDNode(keyStr, table.Select(listItem => MakeNode(listItem.Key, listItem.Value, keysInv)).ToArray());
                 }
 
                 return new RGDNode(keyStr, value);
             }
 
-            return kvs.KeyValues.Select(kv => makeNode(kv.Key, kv.Value, keysInv)).ToArray();
+            return kvs.KeyValues.Select(kv => MakeNode(kv.Key, kv.Value, keysInv)).ToArray();
         }
 
         public enum RRTexType

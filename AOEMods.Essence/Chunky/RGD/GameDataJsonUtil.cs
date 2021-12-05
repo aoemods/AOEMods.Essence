@@ -31,7 +31,6 @@ public static class GameDataJsonUtil
                 for (int i = 0; i < childNodes.Count; i++)
                 {
                     printValue(childNodes[i], depth + 2);
-                    var childNode = childNodes[i];
 
                     if (i != childNodes.Count - 1)
                     {

@@ -16,6 +16,9 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
 using System.Numerics;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace AOEMods.Essence.CLI;
 
@@ -146,20 +149,78 @@ public static class Commands
         return 0;
     }
 
-    public static int RGDDecode(RGDDecodeOptions options)
+    public static int RGDEncode(RGDEncodeOptions options)
     {
-        static void ConvertFile(string path, string outputPath)
+        Func<string, RGDNode[]> loadNodesFromPath = options.Format switch
         {
-            using var rgdStream = File.Open(path, FileMode.Open, FileAccess.Read);
-            var nodes = ReadFormat.RGD(rgdStream);
-            string json = GameDataJsonUtil.GameDataToJson(nodes);
+            "xml" => (string path) =>
+            {
+                var doc = XDocument.Parse(File.ReadAllText(path));
 
-            File.WriteAllText(outputPath, json);
+                RGDNode XmlElementToRgdNode(XElement element)
+                {
+                    RGDDataType type = Enum.Parse<RGDDataType>(element.Attribute("Type").Value);
+                    object value = type switch
+                    {
+                        RGDDataType.Float => float.Parse(element.Attribute("Value").Value),
+                        RGDDataType.Int => int.Parse(element.Attribute("Value").Value),
+                        RGDDataType.Boolean => bool.Parse(element.Attribute("Value").Value),
+                        RGDDataType.CString => element.Attribute("Value").Value,
+                        RGDDataType.List or RGDDataType.List2 => element.Elements().Select(XmlElementToRgdNode).ToArray(),
+                        _ => throw new NotImplementedException()
+                    };
+                    return new RGDNode(element.Attribute("Key").Value, value);
+                }
+
+                var rootElements = doc.Root.Elements();
+
+                return rootElements.Select(XmlElementToRgdNode).ToArray();
+            },
+            _ => throw new NotSupportedException($"Unsupported inpout format {options.Format}, only xml is supported")
+        };
+
+        void ConvertFile(string path, string outputPath)
+        {
+            var nodes = loadNodesFromPath(path);
+
+            using var outStream = File.Open(outputPath, FileMode.Create, FileAccess.Write);
+            WriteFormat.RGD(outStream, nodes);
         }
 
         if (options.Batch)
         {
-            BatchConvert(options.InputPath, options.OutputPath, "**/*.rgd", ".json", ConvertFile);
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.xml", ".rgd", ConvertFile);
+        }
+        else
+        {
+            ConvertFile(options.InputPath, options.OutputPath);
+        }
+
+
+        return 0;
+    }
+
+    public static int RGDDecode(RGDDecodeOptions options)
+    {
+        Func<IList<RGDNode>, string> conversionFunc = options.Format switch
+        {
+            "json" => GameDataJsonUtil.GameDataToJson,
+            "xml" => GameDataXmlUtil.GameDataToXml,
+            _ => throw new NotSupportedException($"Unsupported output format {options.Format}, supported values are json and xml.")
+        };
+
+        void ConvertFile(string path, string outputPath)
+        {
+            using var rgdStream = File.Open(path, FileMode.Open, FileAccess.Read);
+            var nodes = ReadFormat.RGD(rgdStream);
+
+            string converted = conversionFunc(nodes);
+            File.WriteAllText(outputPath, converted);
+        }
+
+        if (options.Batch)
+        {
+            BatchConvert(options.InputPath, options.OutputPath, "**/*.rgd", $".{options.Format}", ConvertFile);
         }
         else
         {

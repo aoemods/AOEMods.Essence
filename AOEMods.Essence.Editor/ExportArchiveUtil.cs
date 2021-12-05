@@ -5,6 +5,7 @@ using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
 using SixLabors.ImageSharp.Formats;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -25,6 +26,7 @@ public interface IExportRRTexOptions
 public interface IExportRgdOptions
 {
     public bool ConvertRgd { get; set; }
+    public string Format { get; set; }
 }
 
 public interface IExportArchiveNodeOptions : IExportRRTexOptions, IExportRRGeomOptions, IExportRgdOptions
@@ -43,6 +45,8 @@ public class ExportArchiveNodeOptions : IExportArchiveNodeOptions
     public IImageFormat RRTexFormat { get => rrtexOptions.RRTexFormat; set => rrtexOptions.RRTexFormat = value; }
     public bool ConvertRRGeom { get => rrgeomOptions.ConvertRRGeom; set => rrgeomOptions.ConvertRRGeom = value; }
     public bool ConvertRgd { get => rgdOptions.ConvertRgd; set => rgdOptions.ConvertRgd = value; }
+    public string Format { get => rgdOptions.Format; set => rgdOptions.Format = value; }
+
     private readonly IExportRRTexOptions rrtexOptions;
     private readonly IExportRRGeomOptions rrgeomOptions;
     private readonly IExportRgdOptions rgdOptions;
@@ -146,8 +150,16 @@ public static class ExportArchiveUtil
         }
 
         var nodes = ReadFormat.RGD(new MemoryStream(node.GetData().ToArray()));
-        string json = GameDataJsonUtil.GameDataToJson(nodes);
-        File.WriteAllText(Path.ChangeExtension(outPath, ".json"), json);
+
+        Func<IList<RGDNode>, string> conversionFunc = options.Format switch
+        {
+            "json" => GameDataJsonUtil.GameDataToJson,
+            "xml" => GameDataXmlUtil.GameDataToXml,
+            _ => throw new NotSupportedException($"Unsupported output format {options.Format}, supported values are json and xml.")
+        };
+
+        string converted = conversionFunc(nodes);
+        File.WriteAllText(Path.ChangeExtension(outPath, $".{options.Format}"), converted);
     }
 
     public static void ExportArchiveNode(IArchiveNode node, IExportArchiveNodeOptions options)
