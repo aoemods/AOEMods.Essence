@@ -151,37 +151,15 @@ public static class Commands
 
     public static int RGDEncode(RGDEncodeOptions options)
     {
-        Func<string, RGDNode[]> loadNodesFromPath = options.Format switch
+        Func<string, RGDNode[]> loadNodes = options.Format switch
         {
-            "xml" => (string path) =>
-            {
-                var doc = XDocument.Parse(File.ReadAllText(path));
-
-                RGDNode XmlElementToRgdNode(XElement element)
-                {
-                    RGDDataType type = Enum.Parse<RGDDataType>(element.Attribute("Type").Value);
-                    object value = type switch
-                    {
-                        RGDDataType.Float => float.Parse(element.Attribute("Value").Value),
-                        RGDDataType.Int => int.Parse(element.Attribute("Value").Value),
-                        RGDDataType.Boolean => bool.Parse(element.Attribute("Value").Value),
-                        RGDDataType.CString => element.Attribute("Value").Value,
-                        RGDDataType.List or RGDDataType.List2 => element.Elements().Select(XmlElementToRgdNode).ToArray(),
-                        _ => throw new NotImplementedException()
-                    };
-                    return new RGDNode(element.Attribute("Key").Value, value);
-                }
-
-                var rootElements = doc.Root.Elements();
-
-                return rootElements.Select(XmlElementToRgdNode).ToArray();
-            },
+            "xml" => GameDataXmlUtil.XmlToGameData,
             _ => throw new NotSupportedException($"Unsupported inpout format {options.Format}, only xml is supported")
         };
 
         void ConvertFile(string path, string outputPath)
         {
-            var nodes = loadNodesFromPath(path);
+            var nodes = loadNodes(File.ReadAllText(path));
 
             using var outStream = File.Open(outputPath, FileMode.Create, FileAccess.Write);
             WriteFormat.RGD(outStream, nodes);

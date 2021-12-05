@@ -1,5 +1,6 @@
 ﻿using System.Security;
 using System.Text;
+using System.Xml.Linq;
 
 namespace AOEMods.Essence.Chunky.RGD;
 
@@ -59,5 +60,29 @@ public static class GameDataXmlUtil
         stringBuilder.Append("</Root>");
 
         return stringBuilder.ToString();
+    }
+
+    public static RGDNode[] XmlToGameData(string xml)
+    {
+        var doc = XDocument.Parse(xml);
+
+        RGDNode XmlElementToRgdNode(XElement element)
+        {
+            RGDDataType type = Enum.Parse<RGDDataType>(element.Attribute("Type").Value);
+            object value = type switch
+            {
+                RGDDataType.Float => float.Parse(element.Attribute("Value").Value),
+                RGDDataType.Int => int.Parse(element.Attribute("Value").Value),
+                RGDDataType.Boolean => bool.Parse(element.Attribute("Value").Value),
+                RGDDataType.CString => element.Attribute("Value").Value,
+                RGDDataType.List or RGDDataType.List2 => element.Elements().Select(XmlElementToRgdNode).ToArray(),
+                _ => throw new NotImplementedException()
+            };
+            return new RGDNode(element.Attribute("Key").Value, value);
+        }
+
+        var rootElements = doc.Root.Elements();
+
+        return rootElements.Select(XmlElementToRgdNode).ToArray();
     }
 }

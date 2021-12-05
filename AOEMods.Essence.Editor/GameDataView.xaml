@@ -9,8 +9,9 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <DockPanel AllowDrop="True">
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar HorizontalAlignment="Left" Width="64">
-                <Button Content="Export" Command="{Binding ExportCommand}" />
+            <ToolBar HorizontalAlignment="Left">
+                <Button Content="Export JSON" Command="{Binding ExportJsonCommand}" />
+                <Button Content="Export XML" Command="{Binding ExportXmlCommand}" />
             </ToolBar>
         </ToolBarTray>
         <TreeView ItemsSource="{Binding RootChildren}">

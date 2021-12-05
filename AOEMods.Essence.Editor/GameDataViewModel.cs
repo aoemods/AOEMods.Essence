@@ -3,6 +3,7 @@ using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
@@ -27,14 +28,16 @@ public class GameDataViewModel : TabItemViewModel
 
     private ObservableCollection<RGDNode>? rootNodes = null;
 
-    public ICommand ExportCommand { get; }
+    public ICommand ExportJsonCommand { get; }
+    public ICommand ExportXmlCommand { get; }
 
     public GameDataViewModel()
     {
-        ExportCommand = new RelayCommand(Export);
+        ExportJsonCommand = new RelayCommand(ExportJson);
+        ExportXmlCommand = new RelayCommand(ExportXml);
     }
 
-    private void Export()
+    private void ExportJson()
     {
         if (RootNodes != null)
         {
@@ -48,7 +51,26 @@ public class GameDataViewModel : TabItemViewModel
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                System.IO.File.WriteAllText(saveFileDialog.FileName, gameDataJson, Encoding.ASCII);
+                File.WriteAllText(saveFileDialog.FileName, gameDataJson, Encoding.ASCII);
+            }
+        }
+    }
+
+    private void ExportXml()
+    {
+        if (RootNodes != null)
+        {
+            string gameDataXml = GameDataXmlUtil.GameDataToXml(RootNodes);
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog()
+            {
+                Filter = $"xml (*.xml)|*.json|All files (*.*)|*.*",
+                FileName = "data.xml",
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                File.WriteAllText(saveFileDialog.FileName, gameDataXml, Encoding.ASCII);
             }
         }
     }
