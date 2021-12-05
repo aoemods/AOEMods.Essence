@@ -3,6 +3,7 @@ using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
+using Ookii.Dialogs.Wpf;
 using SixLabors.ImageSharp.Formats;
 using System;
 using System.Collections.Generic;
@@ -164,42 +165,89 @@ public static class ExportArchiveUtil
 
     public static void ExportArchiveNode(IArchiveNode node, IExportArchiveNodeOptions options)
     {
-        void ExportRecursive(IArchiveNode childNode)
+        int nodeCount = 0;
+        void CountNodesRecursive(IArchiveNode childNode)
         {
-            if (childNode is IArchiveFileNode file)
-            {
-                string relativePath = node.FullName == "" ?
-                    childNode.FullName :
-                    Path.GetRelativePath(node.FullName, childNode.FullName);
-                string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-
-                switch (file.Extension)
-                {
-                    case ".rrtex":
-                        ExportRRTexNode(file, outPath, options);
-                        break;
-                    case ".rrgeom":
-                        ExportRRGeomNode(file, outPath, options);
-                        break;
-                    case ".rgd":
-                        ExportRgdNode(file, outPath, options);
-                        break;
-                    default:
-                        ExportRawNode(file, outPath);
-                        break;
-                }
-            }
-            else if (childNode is IArchiveFolderNode folderNode)
+            if (childNode is IArchiveFolderNode folderNode)
             {
                 foreach (var childNodeChild in folderNode.Children)
                 {
-                    ExportRecursive(childNodeChild);
+                    CountNodesRecursive(childNodeChild);
                 }
+            }
+            else
+            {
+                nodeCount++;
             }
         }
 
-        ExportRecursive(node);
+        CountNodesRecursive(node);
+
+        ProgressDialog progressDialog = new()
+        {
+            WindowTitle = "Extracting archive",
+            ShowTimeRemaining = true,
+            ProgressBarStyle = ProgressBarStyle.ProgressBar,
+        };
+
+        int progressPercent = 0;
+
+        progressDialog.DoWork += (o, e) =>
+        {
+            int processedNodes = 0;
+            void ExportRecursive(IArchiveNode childNode)
+            {
+                if (childNode is IArchiveFileNode file)
+                {
+                    string relativePath = node.FullName == "" ?
+                        childNode.FullName :
+                        Path.GetRelativePath(node.FullName, childNode.FullName);
+                    string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+
+                    switch (file.Extension)
+                    {
+                        case ".rrtex":
+                            ExportRRTexNode(file, outPath, options);
+                            break;
+                        case ".rrgeom":
+                            ExportRRGeomNode(file, outPath, options);
+                            break;
+                        case ".rgd":
+                            ExportRgdNode(file, outPath, options);
+                            break;
+                        default:
+                            ExportRawNode(file, outPath);
+                            break;
+                    }
+
+                    processedNodes++;
+
+                    int newProgressPercent = (int)Math.Round(100 * (float)processedNodes / Math.Max(1, nodeCount));
+                    if (newProgressPercent > progressPercent)
+                    {
+                        progressPercent = newProgressPercent;
+                        progressDialog.ReportProgress(progressPercent, childNode.FullName, $"{processedNodes} / {nodeCount}");
+                    }
+                }
+                else if (childNode is IArchiveFolderNode folderNode)
+                {
+                    foreach (var childNodeChild in folderNode.Children)
+                    {
+                        if (progressDialog.CancellationPending)
+                        {
+                            return;
+                        }
+
+                        ExportRecursive(childNodeChild);
+                    }
+                }
+            }
+
+            ExportRecursive(node);
+        };
+
+        progressDialog.Show();
     }
 
     public static bool? ShowExportArchiveNodeDialog(IArchiveNode node, string title)
