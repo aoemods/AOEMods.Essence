@@ -9,5 +9,6 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <CheckBox IsChecked="{Binding ConvertRRGeom}">Convert RRGeom</CheckBox>
+        <CheckBox IsChecked="{Binding OnlyGeometry}">Only Geometry (no material)</CheckBox>
     </StackPanel>
 </UserControl>

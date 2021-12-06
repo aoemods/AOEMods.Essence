@@ -1,20 +1,28 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRGeom;
+using AOEMods.Essence.Chunky.RRMaterial;
 using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using Ookii.Dialogs.Wpf;
+using SharpGLTF.Materials;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AOEMods.Essence.Editor;
 
 public interface IExportRRGeomOptions
 {
     public bool ConvertRRGeom { get; set; }
+    public bool OnlyGeometry { get; set; }
 }
 
 public interface IExportRRTexOptions
@@ -47,6 +55,7 @@ public class ExportArchiveNodeOptions : IExportArchiveNodeOptions
     public bool ConvertRRGeom { get => rrgeomOptions.ConvertRRGeom; set => rrgeomOptions.ConvertRRGeom = value; }
     public bool ConvertRgd { get => rgdOptions.ConvertRgd; set => rgdOptions.ConvertRgd = value; }
     public string Format { get => rgdOptions.Format; set => rgdOptions.Format = value; }
+    public bool OnlyGeometry { get => rrgeomOptions.OnlyGeometry; set => rrgeomOptions.OnlyGeometry = value; }
 
     private readonly IExportRRTexOptions rrtexOptions;
     private readonly IExportRRGeomOptions rrgeomOptions;
@@ -79,10 +88,9 @@ public static class ExportArchiveUtil
             return;
         }
 
-        var textures = ReadFormat.RRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
         if (options.ExportAllMips)
         {
-            foreach (var texture in textures)
+            foreach (var texture in ReadFormat.RRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
             {
                 var mipOutPath = Path.Combine(
                     Path.GetDirectoryName(outPath),
@@ -94,15 +102,7 @@ public static class ExportArchiveUtil
         }
         else
         {
-            TextureMip? texture;
-            try
-            {
-                texture = textures.Last();
-            }
-            catch
-            {
-                texture = null;
-            }
+            TextureMip? texture = ReadFormat.RRTexLastMip(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
 
             if (texture.HasValue)
             {
@@ -124,19 +124,84 @@ public static class ExportArchiveUtil
             return;
         }
 
+        IArchive[] archives = WeakReferenceMessenger.Default.Send(new ArchivesRequest()).Response.ToArray();
+
+        TextureMip? FindTexture(string path, RRTexType type)
+        {
+            foreach (var archive in archives)
+            {
+                var file = archive.FindFile(path);
+                if (file != null)
+                {
+                    MemoryStream stream = new(file.GetData().ToArray());
+                    return ReadFormat.RRTexLastMip(stream, PngFormat.Instance, type);
+                }
+            }
+
+            return null;
+        }
+
+        Material? FindMaterial(string path, string? materialName)
+        {
+            foreach (var archive in archives)
+            {
+                var file = archive.FindFile(path);
+                if (file != null)
+                {
+                    MemoryStream stream = new(file.GetData().ToArray());
+                    return ReadFormat.RRMaterial(stream, materialName).First();
+                }
+            }
+
+            return null;
+        }
+
         int objectIndex = 0;
         foreach (var geometryObject in ReadFormat.RRGeom(new MemoryStream(node.GetData().ToArray())))
         {
-            // Write .obj file
-            using var fileStream = File.Open(
-                Path.Combine(
-                    Path.GetDirectoryName(outPath),
-                    $"{Path.GetFileNameWithoutExtension(outPath)}_{objectIndex}.obj"
-                ),
-                FileMode.Create
-            );
+            MaterialBuilder? gltfMaterial = null;
 
-            RRGeomUtil.WriteGeometryObject(fileStream, geometryObject);
+            if (!options.OnlyGeometry)
+            {
+                var material = FindMaterial(Path.ChangeExtension(node.FullName, ".rrmaterial"), geometryObject.MaterialName);
+                if (material != null)
+                {
+                    string? diffusePath = null;
+                    if (material.LodTextures.Textures.TryGetValue("albedoTexture", out string diffPath))
+                    {
+                        diffusePath = diffPath;
+                    }
+                    else if (material.LodTextures.Textures.TryGetValue("albedoTex", out string diffPath2))
+                    {
+                        diffusePath = diffPath2;
+                    }
+
+                    var diffuseTexture = diffusePath != null ? FindTexture(diffusePath, RRTexType.Generic) : null;
+
+                    string? normalPath = null;
+                    if (material.LodTextures.Textures.TryGetValue("normalMap", out string normPath))
+                    {
+                        normalPath = normPath;
+                    }
+
+                    var normalTexture = normalPath != null ? FindTexture(normalPath, RRTexType.NormalMap) : null;
+                    var metalTexture = normalPath != null ? FindTexture(normalPath, RRTexType.Metal) : null;
+
+                    gltfMaterial = GltfUtil.MaterialFromTextures(diffuseTexture, normalTexture, metalTexture);
+                }
+            }
+
+            if (gltfMaterial == null)
+            {
+                gltfMaterial = GltfUtil.MaterialFromTextures(null, null, null);
+            }
+
+            var gltfModel = GltfUtil.GeometryObjectToModel(geometryObject, gltfMaterial);
+
+            gltfModel.SaveGLB(Path.Combine(
+                Path.GetDirectoryName(outPath),
+                $"{Path.GetFileNameWithoutExtension(outPath)}_{objectIndex}.glb"
+            ));
 
             objectIndex++;
         }
@@ -165,23 +230,24 @@ public static class ExportArchiveUtil
 
     public static void ExportArchiveNode(IArchiveNode node, IExportArchiveNodeOptions options)
     {
-        int nodeCount = 0;
-        void CountNodesRecursive(IArchiveNode childNode)
+        List<IArchiveFileNode> fileNodes = new();
+
+        void CollectFileNodesRecursive(IArchiveNode childNode)
         {
             if (childNode is IArchiveFolderNode folderNode)
             {
                 foreach (var childNodeChild in folderNode.Children)
                 {
-                    CountNodesRecursive(childNodeChild);
+                    CollectFileNodesRecursive(childNodeChild);
                 }
             }
-            else
+            else if (childNode is IArchiveFileNode fileNode)
             {
-                nodeCount++;
+                fileNodes.Add(fileNode);
             }
         }
 
-        CountNodesRecursive(node);
+        CollectFileNodesRecursive(node);
 
         ProgressDialog progressDialog = new()
         {
@@ -191,60 +257,53 @@ public static class ExportArchiveUtil
         };
 
         int progressPercent = 0;
+        int processedNodes = 0;
 
         progressDialog.DoWork += (o, e) =>
         {
-            int processedNodes = 0;
-            void ExportRecursive(IArchiveNode childNode)
+            void ProcessNode(IArchiveFileNode file)
             {
-                if (childNode is IArchiveFileNode file)
+                string relativePath = node.FullName == "" ?
+                    file.FullName :
+                    Path.GetRelativePath(node.FullName, file.FullName);
+                string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+
+                switch (file.Extension)
                 {
-                    string relativePath = node.FullName == "" ?
-                        childNode.FullName :
-                        Path.GetRelativePath(node.FullName, childNode.FullName);
-                    string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-
-                    switch (file.Extension)
-                    {
-                        case ".rrtex":
-                            ExportRRTexNode(file, outPath, options);
-                            break;
-                        case ".rrgeom":
-                            ExportRRGeomNode(file, outPath, options);
-                            break;
-                        case ".rgd":
-                            ExportRgdNode(file, outPath, options);
-                            break;
-                        default:
-                            ExportRawNode(file, outPath);
-                            break;
-                    }
-
-                    processedNodes++;
-
-                    int newProgressPercent = (int)Math.Round(100 * (float)processedNodes / Math.Max(1, nodeCount));
-                    if (newProgressPercent > progressPercent)
-                    {
-                        progressPercent = newProgressPercent;
-                        progressDialog.ReportProgress(progressPercent, childNode.FullName, $"{processedNodes} / {nodeCount}");
-                    }
+                    case ".rrtex":
+                        ExportRRTexNode(file, outPath, options);
+                        break;
+                    case ".rrgeom":
+                        ExportRRGeomNode(file, outPath, options);
+                        break;
+                    case ".rgd":
+                        ExportRgdNode(file, outPath, options);
+                        break;
+                    default:
+                        ExportRawNode(file, outPath);
+                        break;
                 }
-                else if (childNode is IArchiveFolderNode folderNode)
-                {
-                    foreach (var childNodeChild in folderNode.Children)
-                    {
-                        if (progressDialog.CancellationPending)
-                        {
-                            return;
-                        }
 
-                        ExportRecursive(childNodeChild);
-                    }
+                processedNodes++;
+
+                int newProgressPercent = (int)Math.Round(100 * (float)processedNodes / Math.Max(1, fileNodes.Count));
+                if (newProgressPercent > progressPercent)
+                {
+                    progressPercent = newProgressPercent;
+                    progressDialog.ReportProgress(progressPercent, node.FullName, $"{processedNodes} / {fileNodes.Count}");
                 }
             }
 
-            ExportRecursive(node);
+            foreach (var fileNode in fileNodes)
+            {
+                if (progressDialog.CancellationPending)
+                {
+                    break;
+                }
+
+                ProcessNode(fileNode);
+            }
         };
 
         progressDialog.Show();

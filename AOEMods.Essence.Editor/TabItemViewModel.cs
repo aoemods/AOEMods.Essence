@@ -1,4 +1,7 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.Toolkit.Mvvm.Messaging;
+using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor
 {
@@ -10,5 +13,17 @@ namespace AOEMods.Essence.Editor
             set => SetProperty(ref tabTitle, value);
         }
         private string tabTitle = "";
+
+        public ICommand CloseTabCommand { get; }
+
+        public TabItemViewModel()
+        {
+            CloseTabCommand = new RelayCommand(CloseTab);
+        }
+
+        private void CloseTab()
+        {
+            WeakReferenceMessenger.Default.Send(new CloseTabMessage(this));
+        }
     }
 }

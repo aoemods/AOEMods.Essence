@@ -2,10 +2,11 @@
 
 public interface IArchiveToc
 {
-    public IList<IArchiveFolderNode> Folders { get; }
-    public IList<IArchiveFileNode> Files { get; }
+    IList<IArchiveFolderNode> Folders { get; }
+    IList<IArchiveFileNode> Files { get; }
+    IReadOnlyDictionary<string, IArchiveFileNode> FilesByPath { get; }
     IArchiveFolderNode RootFolder { get; }
     string Name { get; }
     string Alias { get; }
-    public void RebuildFromRootFolder();
+    void RebuildFromRootFolder();
 }

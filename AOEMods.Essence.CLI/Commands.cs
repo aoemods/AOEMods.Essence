@@ -1,6 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRGeom;
+using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SharpGLTF.Geometry;
@@ -124,8 +125,8 @@ public static class Commands
             {
                 try
                 {
-                    var texture = ReadFormat.RRTex(rrtexStream, format).Last();
-                    File.WriteAllBytes(outputPath, texture.Data);
+                    var texture = ReadFormat.RRTexLastMip(rrtexStream, format);
+                    File.WriteAllBytes(outputPath, texture.Value.Data);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -291,24 +292,21 @@ public static class Commands
 
                     var albedoPath = Path.Combine(textureDirectory, texturePaths.ContainsKey("albedoTexture") ? texturePaths["albedoTexture"] : texturePaths["albedoTex"]);
                     using var albedoStream = File.OpenRead(albedoPath);
-                    var albedoTexture = ReadFormat.RRTex(albedoStream, PngFormat.Instance).Last();
+                    var albedoTexture = ReadFormat.RRTexLastMip(albedoStream, PngFormat.Instance);
 
-                    material = new MaterialBuilder()
-                        .WithMetallicRoughnessShader()
-                        .WithChannelImage(KnownChannel.BaseColor, albedoTexture.Data);
+                    TextureMip? normalTexture = null;
+                    TextureMip? metalTexture = null;
 
                     var normalPath = Path.Combine(textureDirectory, texturePaths["normalMap"]);
                     if (File.Exists(normalPath))
                     {
                         using var normalStream = File.OpenRead(normalPath);
-                        var normalTexture = ReadFormat.RRTex(normalStream, PngFormat.Instance, ReadFormat.RRTexType.NormalMap).Last();
+                        normalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.NormalMap);
                         normalStream.Position = 0;
-                        var metalTexture = ReadFormat.RRTex(normalStream, PngFormat.Instance, ReadFormat.RRTexType.Metal).Last();
-
-                        material = material
-                            .WithNormal(normalTexture.Data)
-                            .WithMetallicRoughness(metalTexture.Data);
+                        metalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.Metal);
                     }
+
+                    material = GltfUtil.MaterialFromTextures(albedoTexture, normalTexture, metalTexture);
                 }
             }
             else
@@ -323,44 +321,7 @@ public static class Commands
             int objectIndex = 0;
             foreach (var geometryObject in ReadFormat.RRGeom(stream))
             {
-                var meshBuilder = VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>.CreateCompatibleMesh();
-                var primitive = meshBuilder.UsePrimitive(material);
-
-                var verts = new VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>[geometryObject.VertexPositions.GetLength(0)];
-                for (int i = 0; i < geometryObject.VertexPositions.GetLength(0); i++)
-                {
-                    verts[i] = VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>
-                        .Create(
-                            new Vector3(
-                                (float)geometryObject.VertexPositions[i, 0],
-                                (float)geometryObject.VertexPositions[i, 1],
-                                (float)geometryObject.VertexPositions[i, 2]
-                            ),
-                            new Vector3(
-                                geometryObject.VertexNormals[i, 0],
-                                geometryObject.VertexNormals[i, 1],
-                                geometryObject.VertexNormals[i, 2]
-                            )
-                        ).WithMaterial(new Vector2(
-                            (float)geometryObject.VertexTextureCoordinates[i, 0],
-                            (float)geometryObject.VertexTextureCoordinates[i, 1]
-                        ));
-                }
-
-                for (int i = 0; i < geometryObject.Faces.GetLength(0); i++)
-                {
-                    primitive.AddTriangle(
-                        verts[geometryObject.Faces[i, 0]],
-                        verts[geometryObject.Faces[i, 1]],
-                        verts[geometryObject.Faces[i, 2]]
-                    );
-                }
-                primitive.Validate();
-
-                var model = ModelRoot.CreateModel();
-                var mesh = model.CreateMeshes(meshBuilder).Single();
-                var scene = model.UseScene(0);
-                scene.CreateNode().WithMesh(mesh);
+                var model = GltfUtil.GeometryObjectToModel(geometryObject, material);
 
                 using var fileStream = File.Open(
                     Path.Join(directoryName, $"{objectIndex}_{fileName}"),

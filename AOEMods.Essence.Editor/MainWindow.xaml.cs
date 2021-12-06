@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor
 {
@@ -26,6 +27,22 @@ namespace AOEMods.Essence.Editor
             base.OnClosed(e);
 
             Application.Current.Shutdown();
+        }
+
+        private void OnTabItemMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Middle &&
+                e.ButtonState == MouseButtonState.Pressed &&
+                sender is FrameworkElement element &&
+                element.DataContext is TabItemViewModel tabItemViewModel)
+            {
+                tabItemViewModel.CloseTabCommand.Execute(null);
+                e.Handled = true;
+            }
+            else
+            {
+                e.Handled = false;
+            }
         }
     }
 }

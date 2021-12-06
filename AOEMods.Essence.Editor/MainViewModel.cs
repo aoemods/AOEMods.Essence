@@ -1,12 +1,15 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.SGA;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;
+using Microsoft.Toolkit.Mvvm.Messaging.Messages;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using SixLabors.ImageSharp.Formats.Png;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -16,10 +19,16 @@ using System.Windows.Input;
 namespace AOEMods.Essence.Editor;
 
 public record OpenStreamMessage(Stream Stream, string Extension, string Title);
+public class ArchivesRequest : RequestMessage<IEnumerable<IArchive>>
+{
+}
 
-public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
+public record CloseTabMessage(TabItemViewModel TabItemViewModel);
+
+public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>, IRecipient<ArchivesRequest>, IRecipient<CloseTabMessage>
 {
     public ICommand OpenFileDialogCommand { get; }
+    public ICommand OpenFilesInDirectoryDialogCommand { get; }
     public ICommand OpenDirectoryDialogCommand { get; }
 
     public int SelectedTabIndex
@@ -38,14 +47,32 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     public MainViewModel()
     {
         OpenFileDialogCommand = new RelayCommand(OpenFileDialog);
+        OpenFilesInDirectoryDialogCommand = new RelayCommand(OpenFilesInDirectoryDialog);
         OpenDirectoryDialogCommand = new RelayCommand(OpenDirectoryDialog);
 
-        WeakReferenceMessenger.Default.Register(this);
+        WeakReferenceMessenger.Default.Register<OpenStreamMessage>(this);
+        WeakReferenceMessenger.Default.Register<ArchivesRequest>(this);
+        WeakReferenceMessenger.Default.Register<CloseTabMessage>(this);
+    }
+
+    public void Receive(ArchivesRequest message)
+    {
+        message.Reply(TabItems
+            .OfType<ArchiveViewModel>()
+            .Select(archiveViewModel => archiveViewModel.Archive)
+            .Where(archive => archive != null)
+            .Cast<IArchive>()
+        );
     }
 
     public void Receive(OpenStreamMessage message)
     {
         OpenStream(message.Stream, message.Extension, message.Title);
+    }
+
+    public void Receive(CloseTabMessage message)
+    {
+        TabItems.Remove(message.TabItemViewModel);
     }
 
     public void OnDrop(IDataObject droppedObject)
@@ -65,7 +92,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
         OpenFileDialog openFileDialog = new OpenFileDialog()
         {
             Filter = "Essence files(*.sga, *.rgd, *.rrtex, *.rrgeom, *.rrmaterial) | *.sga; *.rgd; *.rrtex; *.rrgeom; *.rrmaterial; | sga files(*.sga) | *.sga | rgd files(*.rgd) | *.rgd | rrtex files(*.rrtex) | *.rrtex | rrgeom files(*.rrgeom) | *.rrgeom | rrmaterial files(*.rrmaterial) | *.rrmaterial | All files(*.*) | *.*",
-            RestoreDirectory = true
+            RestoreDirectory = true,
         };
 
         if (openFileDialog.ShowDialog() == true)
@@ -77,6 +104,28 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     private void OpenFile(string filePath)
     {
         OpenStream(File.OpenRead(filePath), Path.GetExtension(filePath), Path.GetFileName(filePath));
+    }
+
+    private void OpenFilesInDirectoryDialog()
+    {
+        VistaFolderBrowserDialog dialog = new()
+        {
+            Description = "Select the directory of which to open all SGA archives"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            Matcher matcher = new();
+            matcher.AddInclude("**/*.sga");
+            var sgaPaths = matcher.GetResultsInFullPath(dialog.SelectedPath).ToArray();
+
+            foreach (var sgaPath in sgaPaths)
+            {
+                OpenFile(sgaPath);
+            }
+
+            SelectedTabIndex = TabItems.Count - 1;
+        }
     }
 
     private void OpenDirectoryDialog()
@@ -115,6 +164,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
                 AddRRGeomTab(stream, title);
                 break;
             case ".rrmaterial":
+            case "chunky":
                 AddChunkyTab(stream, title);
                 break;
             default:
@@ -150,7 +200,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>
     {
         TabItems.Add(new TextureViewModel()
         {
-            ImageFile = ReadFormat.RRTex(stream, PngFormat.Instance).Last(),
+            ImageFile = ReadFormat.RRTexLastMip(stream, PngFormat.Instance),
             TabTitle = title,
         });
     }

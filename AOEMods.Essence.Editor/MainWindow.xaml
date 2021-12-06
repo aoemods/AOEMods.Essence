@@ -11,6 +11,7 @@
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar HorizontalAlignment="Left">
                 <Button Content="Open File" Command="{Binding OpenFileDialogCommand}" />
+                <Button Content="Open Files in Directory" Command="{Binding OpenFilesInDirectoryDialogCommand}" />
                 <Button Content="Open Directory" Command="{Binding OpenDirectoryDialogCommand}" />
             </ToolBar>
         </ToolBarTray>
@@ -34,7 +35,10 @@
             </TabControl.Resources>
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="local:TabItemViewModel">
-                    <TextBlock Text="{Binding TabTitle}" />
+                    <DockPanel MouseDown="OnTabItemMouseDown">
+                        <TextBlock Text="{Binding TabTitle}" />
+                        <Button DockPanel.Dock="Right" Content="X" Command="{Binding CloseTabCommand}" />
+                    </DockPanel>
                 </DataTemplate>
             </TabControl.ItemTemplate>
         </TabControl>

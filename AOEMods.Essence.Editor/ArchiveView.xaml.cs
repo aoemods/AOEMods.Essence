@@ -56,6 +56,20 @@ namespace AOEMods.Essence.Editor
             }
         }
 
+        private void OnOpenInChunkyViewerClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.Parent is ContextMenu contextMenu &&
+                contextMenu.PlacementTarget is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel &&
+                itemViewModel.Node is IArchiveFileNode file)
+            {
+                WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
+                    new MemoryStream(file.GetData().ToArray()), "chunky", file.Name
+                ));
+            }
+        }
+
         private void OnItemDoubleClicked(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement element &&

@@ -15,12 +15,19 @@ namespace AOEMods.Essence.Chunky
 {
     public static class ReadFormat
     {
-        public static IEnumerable<Material> RRMaterial(Stream stream)
+        public static IEnumerable<Material> RRMaterial(Stream stream, string? materialName = null)
         {
             using var reader = new ChunkyFileReader(stream, Encoding.ASCII);
 
             var chunky = reader.ReadChunky();
-            var materialNodes = chunky.RootNodes.OfType<IChunkyFolderNode>().Where(node => node.Header.Name == "GMat");
+            var materialNodes = chunky.RootNodes
+                .OfType<IChunkyFolderNode>()
+                .Where(node => node.Header.Name == "GMat");
+
+            if (!string.IsNullOrEmpty(materialName))
+            {
+                materialNodes = materialNodes.Where(node => node.Header.Path == materialName);
+            }
 
             foreach (var materialNode in materialNodes)
             {
@@ -85,7 +92,11 @@ namespace AOEMods.Essence.Chunky
                         var geobData = RRGeomUtil.ReadDataGeometryBData(reader, geobNodes[0].Header);
                         var geobIndices = RRGeomUtil.ReadDataGeometryBIndices(reader, geobNodes[1].Header);
 
-                        yield return new GeometryObject(geobData.VertexPositions, geobData.VertexTextureCoordinates, geobData.VertexNormals, geobIndices.Faces);
+                        yield return new GeometryObject(
+                            geobData.VertexPositions, geobData.VertexTextureCoordinates,
+                            geobData.VertexNormals, geobIndices.Faces,
+                            gohd.Names.Count >= 2 ? gohd.Names[1] : null
+                        );
                     }
                 }
             }
@@ -146,204 +157,38 @@ namespace AOEMods.Essence.Chunky
             return kvs.KeyValues.Select(kv => MakeNode(kv.Key, kv.Value, keysInv)).ToArray();
         }
 
-        public enum RRTexType
-        {
-            Generic,
-            NormalMap,
-            Metal,
-            Pattern,
-        };
-
         public static IEnumerable<TextureMip> RRTex(Stream rrtexStream, IImageFormat outputFormat, RRTexType textureType = RRTexType.Generic)
         {
             var reader = new ChunkyFileReader(rrtexStream, Encoding.ASCII);
             var fileHeader = reader.ReadChunkyFileHeader();
+            var chunkyFile = reader.ReadChunky();
+            var dataNodes = chunkyFile.RootNodes.OfType<IChunkyDataNode>();
 
-            int mipCount = -1;
-            int width = 0;
-            int height = 0;
-            int[] mipTextureCounts = null;
-            List<int> sizeCompressed = null;
-            List<int> sizeUncompressed = null;
-            int textureCompression = -1;
+            var tmanNode = dataNodes.First(node => node.Header.Name == "TMAN");
+            var tdatNode = dataNodes.First(node => node.Header.Name == "TDAT");
 
-            IEnumerable<TextureMip> ReadFolderRecursive(long position, long length)
+            var tman = RRTexUtil.ReadDataTman(reader, tmanNode.Header);
+            var mips = RRTexUtil.ReadDataTdat(reader, tdatNode.Header, tman, outputFormat, textureType);
+            foreach (var mip in mips)
             {
-                reader.BaseStream.Position = position;
-                foreach (var header in reader.ReadChunkHeaders(length))
-                {
-                    long pos = reader.BaseStream.Position;
-                    reader.BaseStream.Position = header.DataPosition;
-
-                    if (header.Name == "TMAN")
-                    {
-                        int unknown1 = reader.ReadInt32();
-                        width = reader.ReadInt32();
-                        height = reader.ReadInt32();
-                        int unknown2 = reader.ReadInt32();
-                        int unknown3 = reader.ReadInt32();
-                        textureCompression = reader.ReadInt32();
-
-                        mipCount = reader.ReadInt32();
-                        int unknown5 = reader.ReadInt32();
-
-                        mipTextureCounts = new int[mipCount];
-                        for (int i = 0; i < mipCount; i++)
-                        {
-                            mipTextureCounts[i] = reader.ReadInt32();
-                        }
-
-                        sizeCompressed = new();
-                        sizeUncompressed = new();
-
-                        for (int i = 0; i < mipCount; i++)
-                        {
-                            for (int j = 0; j < mipTextureCounts[i]; j++)
-                            {
-                                sizeUncompressed.Add(reader.ReadInt32());
-                                sizeCompressed.Add(reader.ReadInt32());
-                            }
-                        }
-                    }
-
-                    if (header.Name == "TDAT")
-                    {
-                        int count = 0;
-                        int unk = reader.ReadInt32();
-                        for (int i = 0; i < mipCount; i++)
-                        {
-                            List<byte> data = new();
-                            int w = -1;
-                            int h = -1;
-
-                            for (int j = 0; j < mipTextureCounts[i]; j++)
-                            {
-                                long prePos = reader.BaseStream.Position;
-
-                                if (sizeCompressed[count] != sizeUncompressed[count])
-                                {
-                                    byte[] zlibHeader = reader.ReadBytes(2);
-
-                                    DeflateStream deflateStream = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
-                                    MemoryStream inflatedStream = new MemoryStream();
-                                    deflateStream.CopyTo(inflatedStream);
-                                    int length2 = (int)inflatedStream.Length;
-
-                                    BinaryReader dataReader = new BinaryReader(inflatedStream);
-                                    dataReader.BaseStream.Position = 0;
-
-                                    if (j == 0)
-                                    {
-                                        int mipLevel = dataReader.ReadInt32();
-                                        int widthx = dataReader.ReadInt32();
-                                        int heightx = dataReader.ReadInt32();
-                                        w = Math.Max(widthx, 4);
-                                        h = Math.Max(heightx, 4);
-                                        int numPhysicalTexels = dataReader.ReadInt32();
-                                        data.AddRange(dataReader.ReadBytes(length2 - 16));
-                                    }
-                                    else
-                                    {
-                                        data.AddRange(dataReader.ReadBytes(length2));
-                                    }
-                                }
-                                else
-                                {
-                                    int length2 = sizeUncompressed[count];
-
-                                    if (j == 0)
-                                    {
-                                        int mipLevel = reader.ReadInt32();
-                                        int widthx = reader.ReadInt32();
-                                        int heightx = reader.ReadInt32();
-                                        w = Math.Max(widthx, 4);
-                                        h = Math.Max(heightx, 4);
-                                        int numPhysicalTexels = reader.ReadInt32();
-                                        data.AddRange(reader.ReadBytes(length2 - 16));
-                                    }
-                                    else
-                                    {
-                                        data.AddRange(reader.ReadBytes(length2));
-                                    }
-                                }
-
-                                reader.BaseStream.Position = prePos + sizeCompressed[count];
-
-                                count++;
-                            }
-
-                            var decoder = new BcDecoder();
-
-                            var format = textureCompression switch
-                            {
-                                2 => CompressionFormat.R,
-                                18 => CompressionFormat.Bc1WithAlpha,
-                                19 => CompressionFormat.Bc1,
-                                22 => CompressionFormat.Bc3,
-                                28 => CompressionFormat.Bc7,
-                                _ => CompressionFormat.Unknown
-                            };
-
-                            if (format == CompressionFormat.Unknown)
-                            {
-                                continue;
-                            }
-
-                            Image<Rgba32> image = decoder.DecodeRawToImageRgba32(data.ToArray(), w, h, format);
-
-                            switch (textureType)
-                            {
-                                case RRTexType.NormalMap:
-                                    for (int x = 0; x < image.Width; x++)
-                                    {
-                                        for (int y = 0; y < image.Height; y++)
-                                        {
-                                            image[x, y] = new Rgba32(image[x, y].A, image[x, y].G, image[x, y].B, 255);
-                                        }
-                                    }
-                                    break;
-                                case RRTexType.Metal:
-                                    for (int x = 0; x < image.Width; x++)
-                                    {
-                                        for (int y = 0; y < image.Height; y++)
-                                        {
-                                            image[x, y] = new Rgba32(image[x, y].R, 127, 0, 255);
-                                        }
-                                    }
-                                    break;
-                                case RRTexType.Pattern:
-                                    for (int x = 0; x < image.Width; x++)
-                                    {
-                                        for (int y = 0; y < image.Height; y++)
-                                        {
-                                            image[x, y] = new Rgba32(image[x, y].R, 0, 0, 255);
-                                        }
-                                    }
-                                    break;
-                            }
-
-                            MemoryStream outputStream = new();
-                            image.Save(outputStream, outputFormat);
-                            yield return new TextureMip(i, outputStream.ToArray());
-                        }
-                    }
-
-                    reader.BaseStream.Position = pos;
-
-                    if (header.Type == "FOLD")
-                    {
-                        foreach (var result in ReadFolderRecursive(header.DataPosition, header.Length))
-                        {
-                            yield return result;
-                        }
-                    }
-                }
+                yield return mip;
             }
+        }
 
-            foreach (var result in ReadFolderRecursive(reader.BaseStream.Position, reader.BaseStream.Length - reader.BaseStream.Position))
-            {
-                yield return result;
-            }
+        public static TextureMip? RRTexLastMip(Stream rrtexStream, IImageFormat outputFormat, RRTexType textureType = RRTexType.Generic)
+        {
+            var reader = new ChunkyFileReader(rrtexStream, Encoding.ASCII);
+            var chunkyFile = reader.ReadChunky();
+            var dataNodes = ((IChunkyFolderNode)chunkyFile.RootNodes.Single(node => node.Header.Name == "TSET")).Children
+                .OfType<IChunkyFolderNode>().Single(node => node.Header.Name == "TXTR").Children
+                .OfType<IChunkyFolderNode>().Single(node => node.Header.Name == "DXTC").Children
+                .OfType<IChunkyDataNode>().ToArray();
+
+            var tmanNode = dataNodes.First(node => node.Header.Name == "TMAN");
+            var tdatNode = dataNodes.First(node => node.Header.Name == "TDAT");
+
+            var tman = RRTexUtil.ReadDataTman(reader, tmanNode.Header);
+            return RRTexUtil.ReadDataTdatLastMip(reader, tdatNode.Header, tman, outputFormat, textureType);
         }
     }
 }

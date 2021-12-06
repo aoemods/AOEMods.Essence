@@ -1,6 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 
 namespace AOEMods.Essence.Editor
@@ -22,6 +23,14 @@ namespace AOEMods.Essence.Editor
         }
 
         private ChunkyFile? chunkyFile = null;
+
+        public Stream? DataStream
+        {
+            get => dataStream;
+            set => SetProperty(ref dataStream, value);
+        }
+
+        private Stream? dataStream = null;
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {

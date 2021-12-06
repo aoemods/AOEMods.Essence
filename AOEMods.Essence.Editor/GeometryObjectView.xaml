@@ -11,8 +11,9 @@
              Loaded="UserControl_Loaded">
     <DockPanel AllowDrop="True" Background="Gray">
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar HorizontalAlignment="Left" Width="64">
-                <Button Content="Export" Command="{Binding ExportCommand}" />
+            <ToolBar HorizontalAlignment="Left">
+                <Button Content="Export .obj" Command="{Binding ExportCommand}" />
+                <Label FontSize="10">(Model with material can be exported as gltf from within archive - right click the .rrgeom file and click export)</Label>
             </ToolBar>
         </ToolBarTray>
         <Viewport3D>

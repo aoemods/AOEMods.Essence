@@ -8,7 +8,10 @@ public class ChunkyFile : IChunkyFile
         {
             var reader = new ChunkyFileReader(stream);
             stream.Position = dataPosition;
-            return reader.ReadNodes(dataLength);
+            foreach (var node in reader.ReadNodes(dataLength))
+            {
+                yield return node;
+            }
         }
     }
 

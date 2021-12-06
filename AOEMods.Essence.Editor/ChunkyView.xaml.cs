@@ -1,4 +1,8 @@
-﻿using System.Windows.Controls;
+﻿using AOEMods.Essence.Chunky;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace AOEMods.Essence.Editor
 {
@@ -12,6 +16,19 @@ namespace AOEMods.Essence.Editor
         public ChunkyView()
         {
             InitializeComponent();
+        }
+
+        private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is ChunkyNodeViewModel nodeViewModel)
+            {
+                if (nodeViewModel.Node is IChunkyDataNode dataNode)
+                {
+                    ViewModel.DataStream = new MemoryStream(dataNode.GetData().ToArray());
+                }
+            }
+
+            e.Handled = false;
         }
     }
 }

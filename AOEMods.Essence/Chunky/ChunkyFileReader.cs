@@ -40,7 +40,7 @@ public class ChunkyFileReader : BinaryReader
             new string(ReadChars(4)),
             ReadInt32(),
             ReadInt32(),
-            Encoding.ASCII.GetString(ReadBytes(ReadInt32())),
+            Encoding.UTF8.GetString(ReadBytes(ReadInt32())).Replace("\0", ""),
             BaseStream.Position
         );
     }
