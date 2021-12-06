@@ -30,7 +30,7 @@ public static class GameDataXmlUtil
                 RGDNode[] => RGDDataType.List.ToString(),
                 _ => throw new NotSupportedException()
             }));
-            
+
             if (node.Value is IList<RGDNode> childNodes)
             {
                 stringBuilder.Append(">\n");

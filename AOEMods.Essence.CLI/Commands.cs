@@ -4,22 +4,14 @@ using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
 using Microsoft.Extensions.FileSystemGlobbing;
-using SharpGLTF.Geometry;
-using SharpGLTF.Geometry.VertexTypes;
 using SharpGLTF.Materials;
-using SharpGLTF.Memory;
-using SharpGLTF.Schema2;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
-using System.Numerics;
 using System.Text;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Serialization;
 
 namespace AOEMods.Essence.CLI;
 

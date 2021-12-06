@@ -1,15 +1,11 @@
 ﻿using AOEMods.Essence.Chunky.RRGeom;
-using AOEMods.Essence.Chunky.RRTex;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
-using System;
 using System.ComponentModel;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
 namespace AOEMods.Essence.Editor;

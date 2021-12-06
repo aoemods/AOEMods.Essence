@@ -59,7 +59,7 @@ public static class RGDUtil
         ChunkyFileWriter dataWriter = new(dataStream);
 
         writer.Write(list.Count);
-        for (int i = 0; i < list.Count;i++)
+        for (int i = 0; i < list.Count; i++)
         {
             writer.Write(list[i].Key);
             switch (list[i].Value)

@@ -1,6 +1,5 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
-using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.Chunky.RRMaterial;
 using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
@@ -8,14 +7,11 @@ using Microsoft.Toolkit.Mvvm.Messaging;
 using Ookii.Dialogs.Wpf;
 using SharpGLTF.Materials;
 using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AOEMods.Essence.Editor;
 

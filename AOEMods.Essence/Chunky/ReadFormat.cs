@@ -1,15 +1,9 @@
 ﻿using AOEMods.Essence.Chunky.RGD;
-using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.Chunky.RRGeom;
-using BCnEncoder.Decoder;
-using BCnEncoder.ImageSharp;
-using BCnEncoder.Shared;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.PixelFormats;
-using System.IO.Compression;
-using System.Text;
 using AOEMods.Essence.Chunky.RRMaterial;
+using AOEMods.Essence.Chunky.RRTex;
+using SixLabors.ImageSharp.Formats;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky
 {

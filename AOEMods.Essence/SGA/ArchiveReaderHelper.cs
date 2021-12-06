@@ -6,7 +6,7 @@ public static class ArchiveReaderHelper
     {
         IArchiveFileNode FilePathToNode(string filePath, IArchiveNode parent)
         {
-            return new ArchiveStoredFileNode(Path.GetFileName(filePath),filePath, parent);
+            return new ArchiveStoredFileNode(Path.GetFileName(filePath), filePath, parent);
         }
 
         IArchiveFolderNode DirectoryPathToNode(string directoryPath, IArchiveNode? parent)

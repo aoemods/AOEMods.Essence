@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace AOEMods.Essence.SGA;
+﻿namespace AOEMods.Essence.SGA;
 
 public class ArchiveStoredFileNode : IArchiveFileNode
 {
