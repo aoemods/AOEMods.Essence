@@ -4,8 +4,16 @@ using System.Xml.Linq;
 
 namespace AOEMods.Essence.Chunky.RGD;
 
+/// <summary>
+/// Provides functions for encoding and decoding Relic Game Data (RGD) with XML.
+/// </summary>
 public static class GameDataXmlUtil
 {
+    /// <summary>
+    /// Encodes RGD nodes as an XML string.
+    /// </summary>
+    /// <param name="nodes">List of RGD nodes to encode with XML.</param>
+    /// <returns>XML string encoding the given RGD nodes.</returns>
     public static string GameDataToXml(IList<RGDNode> nodes)
     {
         StringBuilder stringBuilder = new StringBuilder();
@@ -62,6 +70,12 @@ public static class GameDataXmlUtil
         return stringBuilder.ToString();
     }
 
+    /// <summary>
+    /// Decodes an XML string to RGD nodes.
+    /// </summary>
+    /// <param name="xml">XML string encoding the RGD nodes.</param>
+    /// <returns>RGD nodes the XML string is encoding.</returns>
+    /// <exception cref="NotImplementedException">Thrown if an unknown data type is read for a node in the encoded XML.</exception>
     public static RGDNode[] XmlToGameData(string xml)
     {
         var doc = XDocument.Parse(xml);

@@ -2,20 +2,32 @@
 
 namespace AOEMods.Essence.Chunky.Graph;
 
+/// <summary>
+/// Relic Chunky file containing a f ile header and chunky nodes.
+/// </summary>
 public class ChunkyFile : IChunkyFile
 {
-    public IEnumerable<IChunkyNode> RootNodes => StreamEnumerableUtil.WithPosition(stream, dataPosition, new ChunkyFileReader(stream).ReadNodes(dataLength));
+    /// <summary>
+    /// Nodes of the root chunks of the Relic Chunky file.
+    /// </summary>
+    public IEnumerable<IChunkyNode> RootNodes =>
+        StreamEnumerableUtil.WithPosition(
+            stream, dataPosition, ChunkyNode.FromStream(stream, dataLength)
+        );
 
+    /// <summary>
+    /// Header of the Relic Chunky file.
+    /// </summary>
     public ChunkyFileHeader Header
     {
         get;
     }
 
     private readonly Stream stream;
-    private long dataPosition;
-    private long dataLength;
+    private readonly long dataPosition;
+    private readonly long dataLength;
 
-    public ChunkyFile(ChunkyFileHeader header, Stream stream, long dataPosition, long dataLength)
+    private ChunkyFile(ChunkyFileHeader header, Stream stream, long dataPosition, long dataLength)
     {
         Header = header;
         this.dataPosition = dataPosition;
@@ -23,6 +35,11 @@ public class ChunkyFile : IChunkyFile
         this.stream = stream;
     }
 
+    /// <summary>
+    /// Initializes a ChunkyFile from a stream. The stream should start with the Relic Chunky file header.
+    /// </summary>
+    /// <param name="stream">Stream to read the Relic Chunky file from.</param>
+    /// <returns>ChunkyFile read from the passed stream.</returns>
     public static ChunkyFile FromStream(Stream stream)
     {
         ChunkyFileReader reader = new(stream);

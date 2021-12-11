@@ -250,6 +250,6 @@ public class ArchiveReader : BinaryReader
             );
         }
 
-        return new Archive(archive.Header.NiceName, archive.Tocs.Select(toc => FromTocEntry(toc, null)).ToArray() /*new[] { FromTocEntry(archive.Tocs.First(), null) }*/, archive.Header.Signature);
+        return new Archive(archive.Header.NiceName, archive.Tocs.Select(toc => FromTocEntry(toc, null)).ToArray(), archive.Header.Signature);
     }
 }

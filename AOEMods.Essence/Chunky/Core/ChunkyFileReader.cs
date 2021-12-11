@@ -1,22 +1,34 @@
-﻿using AOEMods.Essence.Chunky.Graph;
-using System.Collections;
-using System.Text;
+﻿using System.Text;
 
 namespace AOEMods.Essence.Chunky.Core;
+
+/// <summary>
+/// Extends BinaryReader to provide extensions for reading Relic Chunky files.
+/// </summary>
 public class ChunkyFileReader : BinaryReader
 {
+    private Encoding encoding;
+
     public ChunkyFileReader(Stream input) : base(input)
     {
+        encoding = Encoding.UTF8;
     }
 
     public ChunkyFileReader(Stream input, Encoding encoding) : base(input, encoding)
     {
+        this.encoding = encoding;
     }
 
     public ChunkyFileReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
     {
+        this.encoding = encoding;
     }
 
+    /// <summary>
+    /// Reads a zero-terminated string from the stream and advances
+    /// the stream's position.
+    /// </summary>
+    /// <returns>String that was read.</returns>
     public string ReadCString()
     {
         List<byte> chars = new();
@@ -33,7 +45,7 @@ public class ChunkyFileReader : BinaryReader
             }
         }
 
-        return Encoding.UTF8.GetString(chars.ToArray());
+        return encoding.GetString(chars.ToArray());
     }
 
     private IEnumerable<ChunkHeader> ReadChunkHeadersImpl(long? length = null)
@@ -57,20 +69,36 @@ public class ChunkyFileReader : BinaryReader
         }
     }
 
+    /// <summary>
+    /// Reads all chunk headers from the current stream position non-recursively and advances
+    /// the stream's position.
+    /// </summary>
+    /// <param name="length">Optional length of how many bytes to read. If null, the entire rest of the stream is considered.</param>
+    /// <returns>Chunk headers that were read from the stream.</returns>
     public IEnumerable<ChunkHeader> ReadChunkHeaders(long? length = null) => StreamEnumerableUtil.WithStreamPosition(BaseStream, ReadChunkHeadersImpl(length));
 
+    /// <summary>
+    /// Reads a single chunk header from the current stream position and advances
+    /// the stream's position.
+    /// </summary>
+    /// <returns>Chunk header that was read from the stream.</returns>
     public ChunkHeader ReadChunkHeader()
     {
         return new ChunkHeader(
-            Encoding.UTF8.GetString(ReadBytes(4)),
-            Encoding.UTF8.GetString(ReadBytes(4)),
+            encoding.GetString(ReadBytes(4)),
+            encoding.GetString(ReadBytes(4)),
             ReadInt32(),
             ReadInt32(),
-            Encoding.UTF8.GetString(ReadBytes(ReadInt32())).Replace("\0", ""),
+            encoding.GetString(ReadBytes(ReadInt32())).Replace("\0", ""),
             BaseStream.Position
         );
     }
 
+    /// <summary>
+    /// Reads the Relic Chunky file header at the current  stream position
+    /// and advances the stream's position.
+    /// </summary>
+    /// <returns>Relic Chunky file header that was read.</returns>
     public ChunkyFileHeader ReadChunkyFileHeader()
     {
         return new ChunkyFileHeader(
@@ -78,30 +106,5 @@ public class ChunkyFileReader : BinaryReader
             ReadInt32(),
             ReadInt32()
         );
-    }
-
-    public IEnumerable<IChunkyNode> ReadNodes()
-    {
-        return ReadNodes(BaseStream.Length - BaseStream.Position);
-    }
-
-    public IEnumerable<IChunkyNode> ReadNodes(long length) => StreamEnumerableUtil.WithStreamPosition(BaseStream, ReadNodesImpl(length));
-
-    private IEnumerable<IChunkyNode> ReadNodesImpl(long length)
-    {
-        foreach (var header in ReadChunkHeaders(length))
-        {
-            switch (header.Type)
-            {
-                case "FOLD":
-                    yield return new ChunkyFolderNode(header, BaseStream);
-                    break;
-                case "DATA":
-                    yield return new ChunkyStreamDataNode(header, BaseStream);
-                    break;
-                default:
-                    throw new Exception($"Unknown chunk type {header.Type}");
-            }
-        }
     }
 }

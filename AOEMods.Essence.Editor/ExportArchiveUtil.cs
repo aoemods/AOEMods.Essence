@@ -89,7 +89,7 @@ public static class ExportArchiveUtil
             foreach (var texture in FormatReader.ReadRRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
             {
                 var mipOutPath = Path.Combine(
-                    Path.GetDirectoryName(outPath),
+                    Path.GetDirectoryName(outPath) ?? "",
                     $"{Path.GetFileNameWithoutExtension(outPath)}_mip{texture.Mip}.png"
                 );
 
@@ -103,7 +103,7 @@ public static class ExportArchiveUtil
             if (texture.HasValue)
             {
                 var mipOutPath = Path.Combine(
-                    Path.GetDirectoryName(outPath),
+                    Path.GetDirectoryName(outPath) ?? "",
                     Path.ChangeExtension(outPath, ".png")
                 );
 
@@ -163,11 +163,11 @@ public static class ExportArchiveUtil
                 if (material != null)
                 {
                     string? diffusePath = null;
-                    if (material.LodTextures.Textures.TryGetValue("albedoTexture", out string diffPath))
+                    if (material.LodTextures.Textures.TryGetValue("albedoTexture", out string? diffPath))
                     {
                         diffusePath = diffPath;
                     }
-                    else if (material.LodTextures.Textures.TryGetValue("albedoTex", out string diffPath2))
+                    else if (material.LodTextures.Textures.TryGetValue("albedoTex", out string? diffPath2))
                     {
                         diffusePath = diffPath2;
                     }
@@ -175,7 +175,7 @@ public static class ExportArchiveUtil
                     var diffuseTexture = diffusePath != null ? FindTexture(diffusePath, RRTexType.Generic) : null;
 
                     string? normalPath = null;
-                    if (material.LodTextures.Textures.TryGetValue("normalMap", out string normPath))
+                    if (material.LodTextures.Textures.TryGetValue("normalMap", out string? normPath))
                     {
                         normalPath = normPath;
                     }
@@ -195,7 +195,7 @@ public static class ExportArchiveUtil
             var gltfModel = GltfUtil.GeometryObjectToModel(geometryObject, gltfMaterial);
 
             gltfModel.SaveGLB(Path.Combine(
-                Path.GetDirectoryName(outPath),
+                Path.GetDirectoryName(outPath) ?? "",
                 $"{Path.GetFileNameWithoutExtension(outPath)}_{objectIndex}.glb"
             ));
 
@@ -263,7 +263,7 @@ public static class ExportArchiveUtil
                     file.FullName :
                     Path.GetRelativePath(node.FullName, file.FullName);
                 string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                Directory.CreateDirectory(Path.GetDirectoryName(outPath) ?? "");
 
                 switch (file.Extension)
                 {

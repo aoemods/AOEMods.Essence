@@ -1,23 +1,23 @@
-﻿using AOEMods.Essence.Chunky.Core;
-using System.Text;
+﻿namespace AOEMods.Essence.Chunky.Graph;
 
-namespace AOEMods.Essence.Chunky.Graph;
-
+/// <summary>
+/// Relic Chunky file FOLD node containing more chunk nodes.
+/// </summary>
 public class ChunkyFolderNode : ChunkyNode, IChunkyFolderNode
 {
-    public IEnumerable<IChunkyNode> Children
-    {
-        get
-        {
-            ChunkyFileReader reader = new(dataStream, Encoding.ASCII, true);
-            reader.BaseStream.Position = Header.DataPosition;
-            foreach (var node in reader.ReadNodes(Header.Length))
-            {
-                yield return node;
-            }
-        }
-    }
+    /// <summary>
+    /// Child chunk nodes of the FOLD node.
+    /// </summary>
+    public IEnumerable<IChunkyNode> Children =>
+        StreamEnumerableUtil.WithPosition(
+            dataStream, Header.DataPosition, FromStream(dataStream, Header.Length)
+        );
 
+    /// <summary>
+    /// Initializes a chunk FOLD node from a header and its data stream.
+    /// </summary>
+    /// <param name="header">Header of the FOLD node.</param>
+    /// <param name="dataStream">Stream containing the content of the FOLD node.</param>
     public ChunkyFolderNode(ChunkHeader header, Stream dataStream)
         : base(header, dataStream)
     {

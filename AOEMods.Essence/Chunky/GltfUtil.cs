@@ -8,8 +8,18 @@ using System.Numerics;
 
 namespace AOEMods.Essence.Chunky;
 
+/// <summary>
+/// Provides functions to convert models consisting of rrgeom, rrmaterial, and rrtex to GLTF.
+/// </summary>
 public static class GltfUtil
 {
+    /// <summary>
+    /// Builds a GLTF material from individual textures.
+    /// </summary>
+    /// <param name="diffuseTexture">Diffuse texture of the material. If null, a default material will be returned.</param>
+    /// <param name="normalTexture">Normal texture of the material. If null, no normal texture will be used.</param>
+    /// <param name="metalTexture">Metal texture of the material. If null, no metal texture will be used.</param>
+    /// <returns>GLTF material created from the individual textures.</returns>
     public static MaterialBuilder MaterialFromTextures(TextureMip? diffuseTexture, TextureMip? normalTexture, TextureMip? metalTexture)
     {
         if (diffuseTexture != null)
@@ -34,6 +44,12 @@ public static class GltfUtil
         return MaterialBuilder.CreateDefault();
     }
 
+    /// <summary>
+    /// Builds a GLTF model from a geometry object and GLTF material.
+    /// </summary>
+    /// <param name="geometryObject">Geometry object of the model.</param>
+    /// <param name="material">GLTF material of the model.</param>
+    /// <returns>GLTF model created from the geometry object and GLTF material.</returns>
     public static ModelRoot GeometryObjectToModel(GeometryObject geometryObject, MaterialBuilder material)
     {
         var meshBuilder = VertexBuilder<VertexPositionNormal, VertexTexture1, VertexEmpty>.CreateCompatibleMesh();

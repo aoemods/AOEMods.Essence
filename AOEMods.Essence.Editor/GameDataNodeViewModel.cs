@@ -37,7 +37,7 @@ public class GameDataNodeViewModel : ObservableRecipient
 
     public string? DisplayValue
     {
-        get => Value == null ? null : string.Format("{0}: {1} ({2})", Key, Value is IList<RGDNode> ? $"{{{Children.Count}}}" : Value, TypeName[Value.GetType()]);
+        get => Value == null ? null : string.Format("{0}: {1} ({2})", Key, Value is IList<RGDNode> ? $"{{{Children?.Count}}}" : Value, TypeName[Value.GetType()]);
     }
 
     public ObservableCollection<GameDataNodeViewModel>? Children
