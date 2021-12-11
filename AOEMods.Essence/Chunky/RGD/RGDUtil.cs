@@ -1,11 +1,10 @@
-﻿using System.Text;
+﻿using AOEMods.Essence.Chunky.Core;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky.RGD;
 
 public static class RGDUtil
 {
-    public static readonly char[] Magic = new[] { 'R', 'e', 'l', 'i', 'c', ' ', 'C', 'h', 'u', 'n', 'k', 'y', '\x0D', '\x0A', '\x1A', '\0' };
-
     public static object ReadType(ChunkyFileReader reader, RGDDataType type)
     {
         return type switch
@@ -19,7 +18,7 @@ public static class RGDUtil
         };
     }
 
-    public static ChunkyList ReadChunkyList(ChunkyFileReader reader)
+    public static RGDList ReadChunkyList(ChunkyFileReader reader)
     {
         int length = reader.ReadInt32();
 
@@ -36,7 +35,7 @@ public static class RGDUtil
         // Read table row data
         long dataPosition = reader.BaseStream.Position;
 
-        ChunkyList kvs = new();
+        RGDList kvs = new();
         foreach (var (key, type, index) in keyTypeAndDataIndex)
         {
             reader.BaseStream.Position = dataPosition + index;
@@ -84,7 +83,7 @@ public static class RGDUtil
                     writer.Write((int)dataStream.Position);
                     dataWriter.WriteCString(dataString);
                     break;
-                case ChunkyList dataList:
+                case RGDList dataList:
                     writer.Write((int)RGDDataType.List);
                     writer.Write((int)dataStream.Position);
                     WriteChunkyList(dataWriter, dataList);

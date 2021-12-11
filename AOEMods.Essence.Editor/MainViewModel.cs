@@ -1,4 +1,5 @@
 ﻿using AOEMods.Essence.Chunky;
+using AOEMods.Essence.Chunky.Graph;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.SGA;
 using Microsoft.Extensions.FileSystemGlobbing;
@@ -11,6 +12,7 @@ using Ookii.Dialogs.Wpf;
 using SixLabors.ImageSharp.Formats.Png;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -167,6 +169,11 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
             case "chunky":
                 AddChunkyTab(stream, title);
                 break;
+            case ".rec":
+                stream.Position = 0x90;
+                AddChunkyTab(stream, title);
+                Trace.WriteLine($"Remaining data: {stream.Length - stream.Position:X} at {stream.Position:X}");
+                break;
             default:
                 MessageBox.Show(
                     $"Unsupported extension '{extension}'", "Unsupported extension",
@@ -182,7 +189,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         TabItems.Add(new GameDataViewModel()
         {
-            RootNodes = new ObservableCollection<RGDNode>(ReadFormat.RGD(stream)),
+            RootNodes = new ObservableCollection<RGDNode>(FormatReader.ReadRGD(stream)),
             TabTitle = title,
         });
     }
@@ -200,7 +207,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         TabItems.Add(new TextureViewModel()
         {
-            ImageFile = ReadFormat.RRTexLastMip(stream, PngFormat.Instance),
+            ImageFile = FormatReader.ReadRRTexLastMip(stream, PngFormat.Instance),
             TabTitle = title,
         });
     }
@@ -208,7 +215,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         TabItems.Add(new GeometryObjectViewModel()
         {
-            GeometryObject = ReadFormat.RRGeom(stream).First(),
+            GeometryObject = FormatReader.ReadRRGeom(stream).First(),
             TabTitle = title,
         });
     }
@@ -217,7 +224,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         TabItems.Add(new ChunkyViewModel()
         {
-            ChunkyFile = (new ChunkyFileReader(stream)).ReadChunky(),
+            ChunkyFile = ChunkyFile.FromStream(stream),
             TabTitle = title,
         });
     }

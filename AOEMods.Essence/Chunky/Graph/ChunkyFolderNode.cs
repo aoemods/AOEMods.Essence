@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using AOEMods.Essence.Chunky.Core;
+using System.Text;
 
-namespace AOEMods.Essence.Chunky;
+namespace AOEMods.Essence.Chunky.Graph;
 
 public class ChunkyFolderNode : ChunkyNode, IChunkyFolderNode
 {

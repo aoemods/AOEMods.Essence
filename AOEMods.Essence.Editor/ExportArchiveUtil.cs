@@ -86,7 +86,7 @@ public static class ExportArchiveUtil
 
         if (options.ExportAllMips)
         {
-            foreach (var texture in ReadFormat.RRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
+            foreach (var texture in FormatReader.ReadRRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
             {
                 var mipOutPath = Path.Combine(
                     Path.GetDirectoryName(outPath),
@@ -98,7 +98,7 @@ public static class ExportArchiveUtil
         }
         else
         {
-            TextureMip? texture = ReadFormat.RRTexLastMip(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
+            TextureMip? texture = FormatReader.ReadRRTexLastMip(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
 
             if (texture.HasValue)
             {
@@ -130,7 +130,7 @@ public static class ExportArchiveUtil
                 if (file != null)
                 {
                     MemoryStream stream = new(file.GetData().ToArray());
-                    return ReadFormat.RRTexLastMip(stream, PngFormat.Instance, type);
+                    return FormatReader.ReadRRTexLastMip(stream, PngFormat.Instance, type);
                 }
             }
 
@@ -145,7 +145,7 @@ public static class ExportArchiveUtil
                 if (file != null)
                 {
                     MemoryStream stream = new(file.GetData().ToArray());
-                    return ReadFormat.RRMaterial(stream, materialName).First();
+                    return FormatReader.ReadRRMaterial(stream, materialName).First();
                 }
             }
 
@@ -153,7 +153,7 @@ public static class ExportArchiveUtil
         }
 
         int objectIndex = 0;
-        foreach (var geometryObject in ReadFormat.RRGeom(new MemoryStream(node.GetData().ToArray())))
+        foreach (var geometryObject in FormatReader.ReadRRGeom(new MemoryStream(node.GetData().ToArray())))
         {
             MaterialBuilder? gltfMaterial = null;
 
@@ -211,7 +211,7 @@ public static class ExportArchiveUtil
             return;
         }
 
-        var nodes = ReadFormat.RGD(new MemoryStream(node.GetData().ToArray()));
+        var nodes = FormatReader.ReadRGD(new MemoryStream(node.GetData().ToArray()));
 
         Func<IList<RGDNode>, string> conversionFunc = options.Format switch
         {

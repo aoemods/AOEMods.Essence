@@ -1,4 +1,4 @@
-﻿namespace AOEMods.Essence.Chunky;
+﻿namespace AOEMods.Essence.Chunky.Graph;
 
 public abstract class ChunkyNode : IChunkyNode
 {

@@ -5,8 +5,6 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
-
-    <Version>$(VersionPrefix)0.5.0</Version>
     <LangVersion>preview</LangVersion>
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
   </PropertyGroup>
@@ -25,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AOEMods.Essence.CLI\AOEMods.Essence.CLI.csproj" />
+    <ProjectReference Include="..\AOEMods.Essence\AOEMods.Essence.csproj" />
   </ItemGroup>
 
 </Project>

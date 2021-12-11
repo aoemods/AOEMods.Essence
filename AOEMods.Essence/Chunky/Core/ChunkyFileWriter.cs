@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AOEMods.Essence.Chunky;
+namespace AOEMods.Essence.Chunky.Core;
 
 public class ChunkyFileWriter : BinaryWriter
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AOEMods.Essence.Chunky;
+namespace AOEMods.Essence.Chunky.Graph;
 
 public class ChunkyStreamDataNode : ChunkyNode, IChunkyDataNode
 {

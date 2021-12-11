@@ -1,4 +1,5 @@
-﻿using BCnEncoder.Decoder;
+﻿using AOEMods.Essence.Chunky.Core;
+using BCnEncoder.Decoder;
 using BCnEncoder.ImageSharp;
 using BCnEncoder.Shared;
 using SixLabors.ImageSharp;

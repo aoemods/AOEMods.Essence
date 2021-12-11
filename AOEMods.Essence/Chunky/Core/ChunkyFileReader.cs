@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using AOEMods.Essence.Chunky.Graph;
+using System.Collections;
+using System.Text;
 
-namespace AOEMods.Essence.Chunky;
+namespace AOEMods.Essence.Chunky.Core;
 public class ChunkyFileReader : BinaryReader
 {
     public ChunkyFileReader(Stream input) : base(input)
@@ -15,12 +17,39 @@ public class ChunkyFileReader : BinaryReader
     {
     }
 
-    public IEnumerable<ChunkHeader> ReadChunkHeaders(long length)
+    public string ReadCString()
     {
-        long startPosition = BaseStream.Position;
-        while (BaseStream.Position < startPosition + length)
+        List<byte> chars = new();
+        while (true)
         {
+            byte b = ReadByte();
+            if (b != 0)
+            {
+                chars.Add(b);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return Encoding.UTF8.GetString(chars.ToArray());
+    }
+
+    private IEnumerable<ChunkHeader> ReadChunkHeadersImpl(long? length = null)
+    {
+        long position = BaseStream.Position;
+        length ??= BaseStream.Length - position;
+        while (BaseStream.Position < position + length)
+        {
+            long oldPosition = BaseStream.Position;
             var chunkHeader = ReadChunkHeader();
+
+            if (chunkHeader.Type != "DATA" && chunkHeader.Type != "FOLD")
+            {
+                BaseStream.Position = oldPosition;
+                break;
+            }
 
             yield return chunkHeader;
 
@@ -28,16 +57,13 @@ public class ChunkyFileReader : BinaryReader
         }
     }
 
-    public IEnumerable<ChunkHeader> ReadChunkHeaders()
-    {
-        return ReadChunkHeaders(BaseStream.Length - BaseStream.Position);
-    }
+    public IEnumerable<ChunkHeader> ReadChunkHeaders(long? length = null) => StreamEnumerableUtil.WithStreamPosition(BaseStream, ReadChunkHeadersImpl(length));
 
     public ChunkHeader ReadChunkHeader()
     {
         return new ChunkHeader(
-            new string(ReadChars(4)),
-            new string(ReadChars(4)),
+            Encoding.UTF8.GetString(ReadBytes(4)),
+            Encoding.UTF8.GetString(ReadBytes(4)),
             ReadInt32(),
             ReadInt32(),
             Encoding.UTF8.GetString(ReadBytes(ReadInt32())).Replace("\0", ""),
@@ -48,35 +74,10 @@ public class ChunkyFileReader : BinaryReader
     public ChunkyFileHeader ReadChunkyFileHeader()
     {
         return new ChunkyFileHeader(
-            ReadChars(16),
+            ReadBytes(16),
             ReadInt32(),
             ReadInt32()
         );
-    }
-
-    public ChunkyFile ReadChunky()
-    {
-        var fileHeader = ReadChunkyFileHeader();
-        return new ChunkyFile(fileHeader, BaseStream, BaseStream.Position, BaseStream.Length - BaseStream.Position);
-    }
-
-    public string ReadCString()
-    {
-        List<char> chars = new List<char>();
-        while (true)
-        {
-            char c = ReadChar();
-            if (c != 0)
-            {
-                chars.Add(c);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return new string(chars.ToArray());
     }
 
     public IEnumerable<IChunkyNode> ReadNodes()
@@ -84,7 +85,9 @@ public class ChunkyFileReader : BinaryReader
         return ReadNodes(BaseStream.Length - BaseStream.Position);
     }
 
-    public IEnumerable<IChunkyNode> ReadNodes(long length)
+    public IEnumerable<IChunkyNode> ReadNodes(long length) => StreamEnumerableUtil.WithStreamPosition(BaseStream, ReadNodesImpl(length));
+
+    private IEnumerable<IChunkyNode> ReadNodesImpl(long length)
     {
         foreach (var header in ReadChunkHeaders(length))
         {

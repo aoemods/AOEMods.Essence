@@ -1,4 +1,6 @@
-﻿namespace AOEMods.Essence.Chunky;
+﻿using AOEMods.Essence.Chunky.Core;
+
+namespace AOEMods.Essence.Chunky.Graph;
 
 public interface IChunkyFile
 {

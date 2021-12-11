@@ -108,7 +108,7 @@ public static class Commands
                 string fileName = Path.GetFileName(outputPath);
                 string directoryName = Path.GetDirectoryName(outputPath);
 
-                foreach (var texture in ReadFormat.RRTex(rrtexStream, format))
+                foreach (var texture in FormatReader.ReadRRTex(rrtexStream, format))
                 {
                     File.WriteAllBytes(Path.Join(directoryName, $"{texture.Mip}_{fileName}"), texture.Data);
                 }
@@ -117,7 +117,7 @@ public static class Commands
             {
                 try
                 {
-                    var texture = ReadFormat.RRTexLastMip(rrtexStream, format);
+                    var texture = FormatReader.ReadRRTexLastMip(rrtexStream, format);
                     File.WriteAllBytes(outputPath, texture.Value.Data);
                 }
                 catch (InvalidOperationException ex)
@@ -155,7 +155,7 @@ public static class Commands
             var nodes = loadNodes(File.ReadAllText(path));
 
             using var outStream = File.Open(outputPath, FileMode.Create, FileAccess.Write);
-            WriteFormat.RGD(outStream, nodes);
+            FormatWriter.WriteRGD(outStream, nodes);
         }
 
         if (options.Batch)
@@ -183,7 +183,7 @@ public static class Commands
         void ConvertFile(string path, string outputPath)
         {
             using var rgdStream = File.Open(path, FileMode.Open, FileAccess.Read);
-            var nodes = ReadFormat.RGD(rgdStream);
+            var nodes = FormatReader.ReadRGD(rgdStream);
 
             string converted = conversionFunc(nodes);
             File.WriteAllText(outputPath, converted);
@@ -210,7 +210,7 @@ public static class Commands
 
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             int objectIndex = 0;
-            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            foreach (var geometryObject in FormatReader.ReadRRGeom(stream))
             {
                 // Write .obj file
                 using var fileStream = File.Open(
@@ -279,12 +279,12 @@ public static class Commands
                 else
                 {
                     using var materialStream = File.OpenRead(materialPath);
-                    var materials = ReadFormat.RRMaterial(materialStream).ToArray();
+                    var materials = FormatReader.ReadRRMaterial(materialStream).ToArray();
                     var texturePaths = materials.First(mat => mat.LodTextures.Textures.ContainsKey("albedoTexture") || mat.LodTextures.Textures.ContainsKey("albedoTex")).LodTextures.Textures;
 
                     var albedoPath = Path.Combine(textureDirectory, texturePaths.ContainsKey("albedoTexture") ? texturePaths["albedoTexture"] : texturePaths["albedoTex"]);
                     using var albedoStream = File.OpenRead(albedoPath);
-                    var albedoTexture = ReadFormat.RRTexLastMip(albedoStream, PngFormat.Instance);
+                    var albedoTexture = FormatReader.ReadRRTexLastMip(albedoStream, PngFormat.Instance);
 
                     TextureMip? normalTexture = null;
                     TextureMip? metalTexture = null;
@@ -293,9 +293,9 @@ public static class Commands
                     if (File.Exists(normalPath))
                     {
                         using var normalStream = File.OpenRead(normalPath);
-                        normalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.NormalMap);
+                        normalTexture = FormatReader.ReadRRTexLastMip(normalStream, PngFormat.Instance, RRTexType.NormalMap);
                         normalStream.Position = 0;
-                        metalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.Metal);
+                        metalTexture = FormatReader.ReadRRTexLastMip(normalStream, PngFormat.Instance, RRTexType.Metal);
                     }
 
                     material = GltfUtil.MaterialFromTextures(albedoTexture, normalTexture, metalTexture);
@@ -311,7 +311,7 @@ public static class Commands
 
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             int objectIndex = 0;
-            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            foreach (var geometryObject in FormatReader.ReadRRGeom(stream))
             {
                 var model = GltfUtil.GeometryObjectToModel(geometryObject, material);
 

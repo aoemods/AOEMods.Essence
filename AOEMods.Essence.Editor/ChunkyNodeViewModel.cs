@@ -1,4 +1,4 @@
-﻿using AOEMods.Essence.Chunky;
+﻿using AOEMods.Essence.Chunky.Graph;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
