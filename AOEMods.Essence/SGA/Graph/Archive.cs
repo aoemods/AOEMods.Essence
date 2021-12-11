@@ -37,6 +37,11 @@ public class Archive : IArchive
         Signature = signature;
     }
 
+    /// <summary>
+    /// Creates an Archive from a stream containing an SGA file.
+    /// </summary>
+    /// <param name="stream">Stream containing an SGA file.</param>
+    /// <returns>Archive created from the SGA stream.</returns>
     public static Archive FromStream(Stream stream)
     {
         ArchiveReader reader = new(stream);
@@ -47,7 +52,7 @@ public class Archive : IArchive
         {
             var folderEntry = archive.Folders[(int)tocEntry.FolderRootIndex];
 
-            stream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
+            stream.Position = (long)(archive.Header.HeaderBlobOffset + archive.Header.StringOffset + folderEntry.NameOffset);
             string name = reader.ReadCString();
             int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
             if (lastSeparatorIndex >= 0)
@@ -74,7 +79,7 @@ public class Archive : IArchive
 
         IArchiveFolderNode FromFolderEntry(ArchiveFolderEntry folderEntry, IArchiveNode? parent)
         {
-            stream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
+            stream.Position = (long)(archive.Header.HeaderBlobOffset + archive.Header.StringOffset + folderEntry.NameOffset);
             string name = reader.ReadCString();
             int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
             if (lastSeparatorIndex >= 0)
@@ -99,7 +104,7 @@ public class Archive : IArchive
 
         IArchiveFileNode FromFileEntry(ArchiveFileEntry fileEntry, IArchiveNode? parent)
         {
-            stream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + fileEntry.NameOffset);
+            stream.Position = (long)(archive.Header.HeaderBlobOffset + archive.Header.StringOffset + fileEntry.NameOffset);
             string name = reader.ReadCString();
 
             return new ArchiveFileNode(

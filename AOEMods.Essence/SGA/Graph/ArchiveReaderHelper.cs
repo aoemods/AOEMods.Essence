@@ -1,7 +1,16 @@
 ﻿namespace AOEMods.Essence.SGA.Graph;
 
+/// <summary>
+/// Helper functions for reading archives.
+/// </summary>
 public static class ArchiveReaderHelper
 {
+    /// <summary>
+    /// Creates an archive from a directory.
+    /// </summary>
+    /// <param name="rootDirectoryPath">Directory path to create archive from.</param>
+    /// <param name="archiveName">Name of the archive to create.</param>
+    /// <returns>Archive created from the given directory.</returns>
     public static IArchive DirectoryToArchive(string rootDirectoryPath, string archiveName)
     {
         IArchiveFileNode FilePathToNode(string filePath, IArchiveNode parent)

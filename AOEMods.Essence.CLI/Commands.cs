@@ -22,8 +22,7 @@ public static class Commands
         var archive = ArchiveReaderHelper.DirectoryToArchive(options.InputPath, options.ArchiveName);
 
         using var outFile = File.Open(options.OutputPath, FileMode.Create, FileAccess.Write);
-        var archiveWriter = new ArchiveWriter(outFile);
-        archiveWriter.Write(archive);
+        ArchiveWriterHelper.WriteArchiveToStream(outFile, archive);
 
         return 0;
     }

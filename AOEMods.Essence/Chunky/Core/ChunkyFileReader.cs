@@ -3,7 +3,7 @@
 namespace AOEMods.Essence.Chunky.Core;
 
 /// <summary>
-/// Extends BinaryReader to provide extensions for reading Relic Chunky files.
+/// Extends BinaryReader to provide functions for reading Relic Chunky files.
 /// </summary>
 public class ChunkyFileReader : BinaryReader
 {

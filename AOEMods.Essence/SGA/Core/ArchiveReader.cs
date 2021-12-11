@@ -2,29 +2,42 @@
 
 namespace AOEMods.Essence.SGA.Core;
 
+/// <summary>
+/// Extends BinaryReader to provide functions for reading SGA archive files.
+/// </summary>
 public class ArchiveReader : BinaryReader
 {
+    private Encoding encoding;
+
     public ArchiveReader(Stream input) : base(input)
     {
+        encoding = Encoding.UTF8;
     }
 
     public ArchiveReader(Stream input, Encoding encoding) : base(input, encoding)
     {
+        this.encoding = encoding;
     }
 
     public ArchiveReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
     {
+        this.encoding = encoding;
     }
 
+    /// <summary>
+    /// Reads a zero-terminated string from the stream and advances
+    /// the stream's position.
+    /// </summary>
+    /// <returns>String that was read.</returns>
     public string ReadCString()
     {
-        List<char> chars = new List<char>();
+        List<byte> chars = new();
         while (true)
         {
-            char c = ReadChar();
-            if (c != 0)
+            byte b = ReadByte();
+            if (b != 0)
             {
-                chars.Add(c);
+                chars.Add(b);
             }
             else
             {
@@ -32,7 +45,7 @@ public class ArchiveReader : BinaryReader
             }
         }
 
-        return new string(chars.ToArray());
+        return encoding.GetString(chars.ToArray());
     }
 
     private string ReadFixedString(int charCount, int charSize)
@@ -66,6 +79,10 @@ public class ArchiveReader : BinaryReader
         };
     }
 
+    /// <summary>
+    /// Reads an SGA archive's header and advances the stream's position.
+    /// </summary>
+    /// <returns>SGA archive header that was read from the stream.</returns>
     public ArchiveHeader ReadHeader()
     {
         byte[] magic = ReadBytes(8);
@@ -110,6 +127,10 @@ public class ArchiveReader : BinaryReader
         );
     }
 
+    /// <summary>
+    /// Reads a table of contents entry and advances the stream's position.
+    /// </summary>
+    /// <returns>Table of contents entry read from the stream.</returns>
     public ArchiveTocEntry ReadTocEntry()
     {
         string alias = ReadFixedString(64, 1);
@@ -123,6 +144,10 @@ public class ArchiveReader : BinaryReader
         return new ArchiveTocEntry(alias, name, folderStartIndex, folderEndIndex, fileStartIndex, fileEndIndex, folderRootIndex);
     }
 
+    /// <summary>
+    /// Reads a folder entry and advances the stream's position.
+    /// </summary>
+    /// <returns>Folder entry read from the stream.</returns>
     public ArchiveFolderEntry ReadFolderEntry()
     {
         uint nameOffset = ReadUInt32();
@@ -134,6 +159,10 @@ public class ArchiveReader : BinaryReader
         return new ArchiveFolderEntry(nameOffset, folderStartIndex, folderEndIndex, fileStartIndex, fileEndIndex);
     }
 
+    /// <summary>
+    /// Reads a file entry and advances the stream's position.
+    /// </summary>
+    /// <returns>File entry read from the stream.</returns>
     public ArchiveFileEntry ReadFileEntry()
     {
         uint nameOffset = ReadUInt32();
@@ -152,6 +181,10 @@ public class ArchiveReader : BinaryReader
         );
     }
 
+    /// <summary>
+    /// Reads all archive entries and advances the stream's position.
+    /// </summary>
+    /// <returns>Archive entries read from the stream.</returns>
     public ArchiveEntries ReadArchiveEntries()
     {
         var header = ReadHeader();
@@ -160,19 +193,19 @@ public class ArchiveReader : BinaryReader
         var folders = new ArchiveFolderEntry[header.FolderDataCount];
         var files = new ArchiveFileEntry[header.FileDataCount];
 
-        BaseStream.Seek((long)(header.Offset + header.TocDataOffset), SeekOrigin.Begin);
+        BaseStream.Seek((long)(header.HeaderBlobOffset + header.TocDataOffset), SeekOrigin.Begin);
         for (int i = 0; i < header.TocDataCount; i++)
         {
             tocs[i] = ReadTocEntry();
         }
 
-        BaseStream.Seek((long)(header.Offset + header.FolderDataOffset), SeekOrigin.Begin);
+        BaseStream.Seek((long)(header.HeaderBlobOffset + header.FolderDataOffset), SeekOrigin.Begin);
         for (int i = 0; i < header.FolderDataCount; i++)
         {
             folders[i] = ReadFolderEntry();
         }
 
-        BaseStream.Seek((long)(header.Offset + header.FileDataOffset), SeekOrigin.Begin);
+        BaseStream.Seek((long)(header.HeaderBlobOffset + header.FileDataOffset), SeekOrigin.Begin);
         for (int i = 0; i < header.FileDataCount; i++)
         {
             files[i] = ReadFileEntry();

@@ -1,8 +1,18 @@
-﻿namespace AOEMods.Essence.SGA.Graph
+﻿namespace AOEMods.Essence.SGA.Graph;
+
+/// <summary>
+/// File node of an SGA archive containing data.
+/// </summary>
+public interface IArchiveFileNode : IArchiveNode
 {
-    public interface IArchiveFileNode : IArchiveNode
-    {
-        public string Extension => Path.GetExtension(Name);
-        public IEnumerable<byte> GetData();
-    }
+    /// <summary>
+    /// Extension of the file node including the period.
+    /// </summary>
+    public string Extension => Path.GetExtension(Name);
+
+    /// <summary>
+    /// Reads and returns the data of the file node.
+    /// </summary>
+    /// <returns>Data of the file.</returns>
+    public IEnumerable<byte> GetData();
 }
