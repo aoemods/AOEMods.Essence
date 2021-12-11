@@ -1,4 +1,6 @@
-﻿namespace AOEMods.Essence.Chunky.Graph;
+﻿using AOEMods.Essence.Chunky.Core;
+
+namespace AOEMods.Essence.Chunky.Graph;
 
 /// <summary>
 /// Relic Chunky file FOLD node containing more chunk nodes.

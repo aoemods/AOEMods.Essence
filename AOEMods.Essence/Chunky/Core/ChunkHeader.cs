@@ -1,4 +1,4 @@
-﻿namespace AOEMods.Essence.Chunky;
+﻿namespace AOEMods.Essence.Chunky.Core;
 
 /// <summary>
 /// Header of a single chunk of a Relic Chunky file.
