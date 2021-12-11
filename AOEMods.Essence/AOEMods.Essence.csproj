@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <AssemblyVersion></AssemblyVersion>
     <Version>$(VersionPrefix)0.5.0</Version>
+    <LangVersion>preview</LangVersion>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,8 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
-using AOEMods.Essence.Chunky.RRGeom;
 using AOEMods.Essence.Chunky.RRTex;
-using AOEMods.Essence.SGA;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SharpGLTF.Materials;
 using SixLabors.ImageSharp.Formats;
@@ -11,7 +10,6 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
-using System.Text;
 
 namespace AOEMods.Essence.CLI;
 
@@ -22,16 +20,15 @@ public static class Commands
         var archive = ArchiveReaderHelper.DirectoryToArchive(options.InputPath, options.ArchiveName);
 
         using var outFile = File.Open(options.OutputPath, FileMode.Create, FileAccess.Write);
-        var archiveWriter = new ArchiveWriter(outFile);
-        archiveWriter.Write(archive);
+        ArchiveWriterHelper.WriteArchiveToStream(outFile, archive);
 
         return 0;
     }
 
     public static int SgaUnpack(SgaUnpackOptions options)
     {
-        ArchiveReader archiveReader = new ArchiveReader(File.OpenRead(options.InputPath), Encoding.ASCII);
-        var arch = archiveReader.ReadArchive();
+        using var archiveFile = File.OpenRead(options.InputPath);
+        var arch = Archive.FromStream(archiveFile);
 
         var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
 
@@ -106,9 +103,9 @@ public static class Commands
             if (options.AllMips)
             {
                 string fileName = Path.GetFileName(outputPath);
-                string directoryName = Path.GetDirectoryName(outputPath);
+                string? directoryName = Path.GetDirectoryName(outputPath);
 
-                foreach (var texture in ReadFormat.RRTex(rrtexStream, format))
+                foreach (var texture in FormatReader.ReadRRTex(rrtexStream, format))
                 {
                     File.WriteAllBytes(Path.Join(directoryName, $"{texture.Mip}_{fileName}"), texture.Data);
                 }
@@ -117,14 +114,21 @@ public static class Commands
             {
                 try
                 {
-                    var texture = ReadFormat.RRTexLastMip(rrtexStream, format);
-                    File.WriteAllBytes(outputPath, texture.Value.Data);
+                    var texture = FormatReader.ReadRRTexLastMip(rrtexStream, format);
+                    if (texture != null)
+                    {
+                        File.WriteAllBytes(outputPath, texture.Value.Data);
+                    }
+                    else if (options.Verbose)
+                    {
+                        Console.WriteLine("No textures could be decoded for {0}", path);
+                    }
                 }
                 catch (InvalidOperationException ex)
                 {
                     if (options.Verbose)
                     {
-                        Console.WriteLine("No textures could be decoded for {0}: {1}", path, ex);
+                        Console.WriteLine("Failed to decode textures for {0}: {1}", path, ex);
                     }
                 }
             }
@@ -155,7 +159,7 @@ public static class Commands
             var nodes = loadNodes(File.ReadAllText(path));
 
             using var outStream = File.Open(outputPath, FileMode.Create, FileAccess.Write);
-            WriteFormat.RGD(outStream, nodes);
+            FormatWriter.WriteRGD(outStream, nodes);
         }
 
         if (options.Batch)
@@ -183,7 +187,7 @@ public static class Commands
         void ConvertFile(string path, string outputPath)
         {
             using var rgdStream = File.Open(path, FileMode.Open, FileAccess.Read);
-            var nodes = ReadFormat.RGD(rgdStream);
+            var nodes = FormatReader.ReadRGD(rgdStream);
 
             string converted = conversionFunc(nodes);
             File.WriteAllText(outputPath, converted);
@@ -206,11 +210,11 @@ public static class Commands
         static void ConvertFile(string path, string outputPath)
         {
             string fileName = Path.GetFileName(outputPath);
-            string directoryName = Path.GetDirectoryName(outputPath);
+            string? directoryName = Path.GetDirectoryName(outputPath);
 
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             int objectIndex = 0;
-            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            foreach (var geometryObject in FormatReader.ReadRRGeom(stream))
             {
                 // Write .obj file
                 using var fileStream = File.Open(
@@ -218,7 +222,7 @@ public static class Commands
                     FileMode.Create
                 );
 
-                RRGeomUtil.WriteGeometryObject(fileStream, geometryObject);
+                ObjUtil.WriteGeometryObjectAsObj(fileStream, geometryObject);
 
                 objectIndex++;
             }
@@ -238,17 +242,17 @@ public static class Commands
 
     public static int ModelExport(ModelExportOptions options)
     {
-        string materialDirectory = string.IsNullOrEmpty(options.MaterialInputPath) ?
-            (Path.GetDirectoryName(options.InputPath) ?? ".") :
+        string? materialDirectory = string.IsNullOrEmpty(options.MaterialInputPath) ?
+            (Path.GetDirectoryName(options.InputPath)) :
             options.MaterialInputPath;
 
-        string textureDirectory = string.IsNullOrEmpty(options.TextureInputPath) ?
+        string? textureDirectory = string.IsNullOrEmpty(options.TextureInputPath) ?
             materialDirectory :
             options.TextureInputPath;
 
         bool TryFindMaterialPath(string path, out string materialPath)
         {
-            materialPath = Path.Combine(materialDirectory, Path.ChangeExtension(Path.GetRelativePath(options.InputPath, path), ".rrmaterial"));
+            materialPath = Path.Combine(materialDirectory ?? "", Path.ChangeExtension(Path.GetRelativePath(options.InputPath, path), ".rrmaterial"));
             if (File.Exists(materialPath))
             {
                 return true;
@@ -279,23 +283,23 @@ public static class Commands
                 else
                 {
                     using var materialStream = File.OpenRead(materialPath);
-                    var materials = ReadFormat.RRMaterial(materialStream).ToArray();
+                    var materials = FormatReader.ReadRRMaterial(materialStream).ToArray();
                     var texturePaths = materials.First(mat => mat.LodTextures.Textures.ContainsKey("albedoTexture") || mat.LodTextures.Textures.ContainsKey("albedoTex")).LodTextures.Textures;
 
-                    var albedoPath = Path.Combine(textureDirectory, texturePaths.ContainsKey("albedoTexture") ? texturePaths["albedoTexture"] : texturePaths["albedoTex"]);
+                    var albedoPath = Path.Combine(textureDirectory ?? "", texturePaths.ContainsKey("albedoTexture") ? texturePaths["albedoTexture"] : texturePaths["albedoTex"]);
                     using var albedoStream = File.OpenRead(albedoPath);
-                    var albedoTexture = ReadFormat.RRTexLastMip(albedoStream, PngFormat.Instance);
+                    var albedoTexture = FormatReader.ReadRRTexLastMip(albedoStream, PngFormat.Instance);
 
                     TextureMip? normalTexture = null;
                     TextureMip? metalTexture = null;
 
-                    var normalPath = Path.Combine(textureDirectory, texturePaths["normalMap"]);
+                    var normalPath = Path.Combine(textureDirectory ?? "", texturePaths["normalMap"]);
                     if (File.Exists(normalPath))
                     {
                         using var normalStream = File.OpenRead(normalPath);
-                        normalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.NormalMap);
+                        normalTexture = FormatReader.ReadRRTexLastMip(normalStream, PngFormat.Instance, RRTexType.NormalMap);
                         normalStream.Position = 0;
-                        metalTexture = ReadFormat.RRTexLastMip(normalStream, PngFormat.Instance, RRTexType.Metal);
+                        metalTexture = FormatReader.ReadRRTexLastMip(normalStream, PngFormat.Instance, RRTexType.Metal);
                     }
 
                     material = GltfUtil.MaterialFromTextures(albedoTexture, normalTexture, metalTexture);
@@ -307,11 +311,11 @@ public static class Commands
             }
 
             string fileName = Path.GetFileName(outputPath);
-            string directoryName = Path.GetDirectoryName(outputPath) ?? ".";
+            string? directoryName = Path.GetDirectoryName(outputPath);
 
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             int objectIndex = 0;
-            foreach (var geometryObject in ReadFormat.RRGeom(stream))
+            foreach (var geometryObject in FormatReader.ReadRRGeom(stream))
             {
                 var model = GltfUtil.GeometryObjectToModel(geometryObject, material);
 

@@ -3,6 +3,7 @@ using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRMaterial;
 using AOEMods.Essence.Chunky.RRTex;
 using AOEMods.Essence.SGA;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Ookii.Dialogs.Wpf;
 using SharpGLTF.Materials;
@@ -86,10 +87,10 @@ public static class ExportArchiveUtil
 
         if (options.ExportAllMips)
         {
-            foreach (var texture in ReadFormat.RRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
+            foreach (var texture in FormatReader.ReadRRTex(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat))
             {
                 var mipOutPath = Path.Combine(
-                    Path.GetDirectoryName(outPath),
+                    Path.GetDirectoryName(outPath) ?? "",
                     $"{Path.GetFileNameWithoutExtension(outPath)}_mip{texture.Mip}.png"
                 );
 
@@ -98,12 +99,12 @@ public static class ExportArchiveUtil
         }
         else
         {
-            TextureMip? texture = ReadFormat.RRTexLastMip(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
+            TextureMip? texture = FormatReader.ReadRRTexLastMip(new MemoryStream(node.GetData().ToArray()), options.RRTexFormat);
 
             if (texture.HasValue)
             {
                 var mipOutPath = Path.Combine(
-                    Path.GetDirectoryName(outPath),
+                    Path.GetDirectoryName(outPath) ?? "",
                     Path.ChangeExtension(outPath, ".png")
                 );
 
@@ -130,7 +131,7 @@ public static class ExportArchiveUtil
                 if (file != null)
                 {
                     MemoryStream stream = new(file.GetData().ToArray());
-                    return ReadFormat.RRTexLastMip(stream, PngFormat.Instance, type);
+                    return FormatReader.ReadRRTexLastMip(stream, PngFormat.Instance, type);
                 }
             }
 
@@ -145,7 +146,7 @@ public static class ExportArchiveUtil
                 if (file != null)
                 {
                     MemoryStream stream = new(file.GetData().ToArray());
-                    return ReadFormat.RRMaterial(stream, materialName).First();
+                    return FormatReader.ReadRRMaterial(stream, materialName).First();
                 }
             }
 
@@ -153,7 +154,7 @@ public static class ExportArchiveUtil
         }
 
         int objectIndex = 0;
-        foreach (var geometryObject in ReadFormat.RRGeom(new MemoryStream(node.GetData().ToArray())))
+        foreach (var geometryObject in FormatReader.ReadRRGeom(new MemoryStream(node.GetData().ToArray())))
         {
             MaterialBuilder? gltfMaterial = null;
 
@@ -163,11 +164,11 @@ public static class ExportArchiveUtil
                 if (material != null)
                 {
                     string? diffusePath = null;
-                    if (material.LodTextures.Textures.TryGetValue("albedoTexture", out string diffPath))
+                    if (material.LodTextures.Textures.TryGetValue("albedoTexture", out string? diffPath))
                     {
                         diffusePath = diffPath;
                     }
-                    else if (material.LodTextures.Textures.TryGetValue("albedoTex", out string diffPath2))
+                    else if (material.LodTextures.Textures.TryGetValue("albedoTex", out string? diffPath2))
                     {
                         diffusePath = diffPath2;
                     }
@@ -175,7 +176,7 @@ public static class ExportArchiveUtil
                     var diffuseTexture = diffusePath != null ? FindTexture(diffusePath, RRTexType.Generic) : null;
 
                     string? normalPath = null;
-                    if (material.LodTextures.Textures.TryGetValue("normalMap", out string normPath))
+                    if (material.LodTextures.Textures.TryGetValue("normalMap", out string? normPath))
                     {
                         normalPath = normPath;
                     }
@@ -195,7 +196,7 @@ public static class ExportArchiveUtil
             var gltfModel = GltfUtil.GeometryObjectToModel(geometryObject, gltfMaterial);
 
             gltfModel.SaveGLB(Path.Combine(
-                Path.GetDirectoryName(outPath),
+                Path.GetDirectoryName(outPath) ?? "",
                 $"{Path.GetFileNameWithoutExtension(outPath)}_{objectIndex}.glb"
             ));
 
@@ -211,7 +212,7 @@ public static class ExportArchiveUtil
             return;
         }
 
-        var nodes = ReadFormat.RGD(new MemoryStream(node.GetData().ToArray()));
+        var nodes = FormatReader.ReadRGD(new MemoryStream(node.GetData().ToArray()));
 
         Func<IList<RGDNode>, string> conversionFunc = options.Format switch
         {
@@ -263,7 +264,7 @@ public static class ExportArchiveUtil
                     file.FullName :
                     Path.GetRelativePath(node.FullName, file.FullName);
                 string outPath = Path.Join(options.OutputDirectoryPath, node.Name, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+                Directory.CreateDirectory(Path.GetDirectoryName(outPath) ?? "");
 
                 switch (file.Extension)
                 {

@@ -1,6 +1,4 @@
 # AOEMods.Essence
-**Work in progress**
-
 C# library and tools for working with Age of Empire 4's Essence engine.
 
 Join the AOE4 modding discord for information sharing, discussions or if you need help: https://discord.gg/h8FX9Uq3vG
@@ -43,7 +41,27 @@ The CLI has multiple commands. You can get the full description and list of para
 - `sga-pack <input-path> <output-path> <archive-name>`: Packs the input directory into a `.sga` archive
 - `sga-unpack <input-path> <output-path>`: Unpacks a `.sga` archive into a folder
 
-## Projects
+### Library
+The solution contains the library, command line interface and a graphical editor.
+
+**Projects**
 - AOEMods.Essence: Library for working with AOE4's files
 - AOEMods.Essence.CLI: Command line interface for working with AOE4's files
 - AOEMods.Essence.Editor: Graphical user interface for working with AOE4's files
+- AOEMods.Essence.Test: Tests for AOEMods.Essence
+- AOEMods.Essence.CLI.Test: Tests for AOEMods.Essence.CLI
+
+The library `AOEMods.Essence` consists of two main parts, one for processing the Relic Chunky format and another for processing SGA archives.
+
+**AOEMods.Essence.Chunky**
+- `AOEMods.Essence.Chunky.Core` contains classes for processing chunky files in general
+- `AOEMods.Essence.Chunky.Graph` is a node graph making use of `AOEMods.Essence.Chunky.Core`
+- `AOEMods.Essence.Chunky.*` uses the core and node graph functionality for processing different chunky formats.
+- `AOEMods.Essence.FormatReader/Writer` unify the different format readers / writers in one reader / writer.
+- `AOEMods.Essence.GltfUtil/ObjUtil` provide functions for converting models to GLTF (`.glb`) and Wavefront object (`.obj`)
+
+**AOEMods.Essence.SGA**
+- `AOEMods.Essence.SGA.Core` contains classes for processing SGA archives
+- `AOEMods.Essence.SGA.Graph` is a node graph making use of `AOEMods.Essence.SGA.Core`
+
+

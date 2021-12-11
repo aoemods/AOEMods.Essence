@@ -2,8 +2,16 @@
 
 namespace AOEMods.Essence.Chunky.RGD;
 
+/// <summary>
+/// Provides functions for encoding and decoding Relic Game Data (RGD) with JSON.
+/// </summary>
 public static class GameDataJsonUtil
 {
+    /// <summary>
+    /// Encodes RGD nodes to a JSON string.
+    /// </summary>
+    /// <param name="nodes">List of RGD nodes to encode with JSON.</param>
+    /// <returns>JSON string encoding the given RGD nodes.</returns>
     public static string GameDataToJson(IList<RGDNode> nodes)
     {
         StringBuilder stringBuilder = new StringBuilder();

@@ -1,4 +1,4 @@
-﻿using AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.SGA.Graph;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using System.IO;
 using System.Linq;

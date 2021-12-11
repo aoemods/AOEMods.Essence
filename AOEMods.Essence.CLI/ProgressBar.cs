@@ -37,7 +37,7 @@ public class ProgressBar : IDisposable, IProgress<double>
         Interlocked.Exchange(ref currentProgress, value);
     }
 
-    private void TimerHandler(object state)
+    private void TimerHandler(object? state)
     {
         lock (timer)
         {

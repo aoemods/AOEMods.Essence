@@ -1,4 +1,5 @@
 ﻿using AOEMods.Essence.SGA;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;

@@ -1,4 +1,5 @@
-﻿using AOEMods.Essence.Chunky.RRGeom;
+﻿using AOEMods.Essence.Chunky;
+using AOEMods.Essence.Chunky.RRGeom;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -126,7 +127,7 @@ public class GeometryObjectViewModel : TabItemViewModel
             if (saveFileDialog.ShowDialog() == true)
             {
                 using var fileStream = File.OpenWrite(saveFileDialog.FileName);
-                RRGeomUtil.WriteGeometryObject(fileStream, GeometryObject);
+                ObjUtil.WriteGeometryObjectAsObj(fileStream, GeometryObject);
             }
         }
     }

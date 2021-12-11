@@ -1,4 +1,4 @@
-﻿using AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.SGA.Graph;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
@@ -51,8 +51,7 @@ namespace AOEMods.Essence.Editor
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     using var outFile = File.Open(saveFileDialog.FileName, FileMode.Create, FileAccess.Write);
-                    var archiveWriter = new ArchiveWriter(outFile);
-                    archiveWriter.Write(Archive);
+                    ArchiveWriterHelper.WriteArchiveToStream(outFile, Archive);
                 }
             }
         }
