@@ -1,7 +1,6 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRTex;
-using AOEMods.Essence.SGA.Core;
 using AOEMods.Essence.SGA.Graph;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SharpGLTF.Materials;
@@ -11,7 +10,6 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
-using System.Text;
 
 namespace AOEMods.Essence.CLI;
 
@@ -121,7 +119,7 @@ public static class Commands
                     {
                         File.WriteAllBytes(outputPath, texture.Value.Data);
                     }
-                    else if(options.Verbose)
+                    else if (options.Verbose)
                     {
                         Console.WriteLine("No textures could be decoded for {0}", path);
                     }
