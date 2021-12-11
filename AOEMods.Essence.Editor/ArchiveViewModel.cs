@@ -1,4 +1,5 @@
-﻿using AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.SGA.Core;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;

@@ -1,5 +1,8 @@
 ﻿namespace AOEMods.Essence;
 
+/// <summary>
+/// Provides utility functions for settings stream positions when reading IEnumerables from Streams.
+/// </summary>
 public static class StreamEnumerableUtil
 {
     /// <summary>

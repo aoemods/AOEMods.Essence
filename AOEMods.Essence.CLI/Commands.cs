@@ -1,7 +1,8 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.RGD;
 using AOEMods.Essence.Chunky.RRTex;
-using AOEMods.Essence.SGA;
+using AOEMods.Essence.SGA.Core;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Extensions.FileSystemGlobbing;
 using SharpGLTF.Materials;
 using SixLabors.ImageSharp.Formats;
@@ -29,8 +30,8 @@ public static class Commands
 
     public static int SgaUnpack(SgaUnpackOptions options)
     {
-        ArchiveReader archiveReader = new ArchiveReader(File.OpenRead(options.InputPath), Encoding.ASCII);
-        var arch = archiveReader.ReadArchive();
+        using var archiveFile = File.OpenRead(options.InputPath);
+        var arch = Archive.FromStream(archiveFile);
 
         var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
 

@@ -1,7 +1,8 @@
-﻿using System.IO.Compression;
+﻿using AOEMods.Essence.SGA.Core;
+using System.IO.Compression;
 using System.Text;
 
-namespace AOEMods.Essence.SGA;
+namespace AOEMods.Essence.SGA.Graph;
 
 public class ArchiveFileNode : IArchiveFileNode
 {

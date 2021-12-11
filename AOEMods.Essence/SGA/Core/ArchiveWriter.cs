@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using AOEMods.Essence.SGA.Graph;
+using System.Text;
 
-namespace AOEMods.Essence.SGA;
+namespace AOEMods.Essence.SGA.Core;
 
 public class ArchiveWriter : BinaryWriter
 {
@@ -182,9 +183,9 @@ public class ArchiveWriter : BinaryWriter
             writer.Write(new ArchiveFolderEntry(
                 dirNameOffset,
                 dirDirectories.Length == 0 ? 0 : (uint)folderNodes.IndexOf(dirDirectories.First()),
-                dirDirectories.Length == 0 ? 0 : ((uint)folderNodes.IndexOf(dirDirectories.Last()) + 1),
+                dirDirectories.Length == 0 ? 0 : (uint)folderNodes.IndexOf(dirDirectories.Last()) + 1,
                 dirFiles.Length == 0 ? 0 : (uint)fileNodes.IndexOf(dirFiles.First()),
-                dirFiles.Length == 0 ? 0 : ((uint)fileNodes.IndexOf(dirFiles.Last()) + 1)
+                dirFiles.Length == 0 ? 0 : (uint)fileNodes.IndexOf(dirFiles.Last()) + 1
             ));
         }
 

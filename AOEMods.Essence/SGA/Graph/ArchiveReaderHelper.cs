@@ -1,4 +1,4 @@
-﻿namespace AOEMods.Essence.SGA;
+﻿namespace AOEMods.Essence.SGA.Graph;
 
 public static class ArchiveReaderHelper
 {

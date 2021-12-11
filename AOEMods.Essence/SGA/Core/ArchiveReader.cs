@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AOEMods.Essence.SGA;
+namespace AOEMods.Essence.SGA.Core;
 
 public class ArchiveReader : BinaryReader
 {
@@ -179,77 +179,5 @@ public class ArchiveReader : BinaryReader
         }
 
         return new ArchiveEntries(header, tocs, folders, files);
-    }
-
-    public Archive ReadArchive()
-    {
-        ArchiveEntries archive = ReadArchiveEntries();
-
-        IArchiveToc FromTocEntry(ArchiveTocEntry tocEntry, IArchiveNode? parent)
-        {
-            var folderEntry = archive.Folders[(int)tocEntry.FolderRootIndex];
-
-            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
-            string name = ReadCString();
-            int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
-            if (lastSeparatorIndex >= 0)
-            {
-                name = name.Substring(lastSeparatorIndex + 1);
-            }
-
-            var rootFolder = new ArchiveFolderNode(name, parent: parent);
-
-            for (uint folderIndex = folderEntry.FolderStartIndex; folderIndex < folderEntry.FolderEndIndex; folderIndex++)
-            {
-                rootFolder.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], rootFolder));
-            }
-
-            for (uint fileIndex = folderEntry.FileStartIndex; fileIndex < folderEntry.FileEndIndex; fileIndex++)
-            {
-                rootFolder.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], rootFolder));
-            }
-
-            var toc = new ArchiveToc(tocEntry.Name, tocEntry.Alias, rootFolder);
-
-            return toc;
-        }
-
-        IArchiveFolderNode FromFolderEntry(ArchiveFolderEntry folderEntry, IArchiveNode? parent)
-        {
-            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + folderEntry.NameOffset);
-            string name = ReadCString();
-            int lastSeparatorIndex = name.LastIndexOfAny(new char[] { '/', '\\' });
-            if (lastSeparatorIndex >= 0)
-            {
-                name = name.Substring(lastSeparatorIndex + 1);
-            }
-
-            var folderNode = new ArchiveFolderNode(name, parent: parent);
-
-            for (uint folderIndex = folderEntry.FolderStartIndex; folderIndex < folderEntry.FolderEndIndex; folderIndex++)
-            {
-                folderNode.Children.Add(FromFolderEntry(archive.Folders[(int)folderIndex], folderNode));
-            }
-
-            for (uint fileIndex = folderEntry.FileStartIndex; fileIndex < folderEntry.FileEndIndex; fileIndex++)
-            {
-                folderNode.Children.Add(FromFileEntry(archive.Files[(int)fileIndex], folderNode));
-            }
-
-            return folderNode;
-        }
-
-        IArchiveFileNode FromFileEntry(ArchiveFileEntry fileEntry, IArchiveNode? parent)
-        {
-            BaseStream.Position = (long)(archive.Header.Offset + archive.Header.StringOffset + fileEntry.NameOffset);
-            string name = ReadCString();
-
-            return new ArchiveFileNode(
-                BaseStream, name, (long)(archive.Header.DataOffset + fileEntry.DataOffset),
-                fileEntry.CompressedLength, fileEntry.UncompressedSize, fileEntry.StorageType, parent
-            );
-        }
-
-        return new Archive(archive.Header.NiceName, archive.Tocs.Select(toc => FromTocEntry(toc, null)).ToArray(), archive.Header.Signature);
     }
 }

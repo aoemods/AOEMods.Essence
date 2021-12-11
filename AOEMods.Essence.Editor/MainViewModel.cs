@@ -1,7 +1,7 @@
 ﻿using AOEMods.Essence.Chunky;
 using AOEMods.Essence.Chunky.Graph;
 using AOEMods.Essence.Chunky.RGD;
-using AOEMods.Essence.SGA;
+using AOEMods.Essence.SGA.Graph;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
@@ -198,7 +198,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         TabItems.Add(new ArchiveViewModel()
         {
-            Archive = (new ArchiveReader(stream)).ReadArchive(),
+            Archive = Archive.FromStream(stream),
             TabTitle = title,
         });
     }

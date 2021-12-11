@@ -1,4 +1,6 @@
-﻿namespace AOEMods.Essence.SGA;
+﻿using AOEMods.Essence.SGA.Graph;
+
+namespace AOEMods.Essence.SGA;
 
 public interface IArchiveFolderNode : IArchiveNode
 {

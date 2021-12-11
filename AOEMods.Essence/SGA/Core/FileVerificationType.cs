@@ -1,4 +1,4 @@
-namespace AOEMods.Essence.SGA;
+namespace AOEMods.Essence.SGA.Core;
 
 public enum FileVerificationType : byte
 {
