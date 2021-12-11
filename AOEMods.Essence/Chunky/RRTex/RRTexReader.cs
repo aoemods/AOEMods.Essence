@@ -7,6 +7,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO.Compression;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky.RRTex;
 
@@ -24,7 +25,7 @@ public class RRTexReader : IRRTexReader
     /// <returns>TextureMips read from the stream.</returns>
     public static IEnumerable<TextureMip> ReadRRTex(Stream rrtexStream, IImageFormat outputFormat, RRTexType textureType = RRTexType.Generic)
     {
-        var reader = new ChunkyFileReader(rrtexStream);
+        var reader = new ChunkyFileReader(rrtexStream, Encoding.UTF8, true);
         var fileHeader = reader.ReadChunkyFileHeader();
         var chunkyFile = ChunkyFile.FromStream(rrtexStream);
         var dataNodes = chunkyFile.RootNodes.OfType<IChunkyDataNode>();
@@ -49,7 +50,7 @@ public class RRTexReader : IRRTexReader
     /// <returns>TextureMip read from the stream.</returns>
     public static TextureMip? ReadRRTexLastMip(Stream rrtexStream, IImageFormat outputFormat, RRTexType textureType = RRTexType.Generic)
     {
-        var reader = new ChunkyFileReader(rrtexStream);
+        var reader = new ChunkyFileReader(rrtexStream, Encoding.UTF8, true);
         var chunkyFile = ChunkyFile.FromStream(rrtexStream);
         var dataNodes = ((IChunkyFolderNode)chunkyFile.RootNodes.Single(node => node.Header.Name == "TSET")).Children
             .OfType<IChunkyFolderNode>().Single(node => node.Header.Name == "TXTR").Children

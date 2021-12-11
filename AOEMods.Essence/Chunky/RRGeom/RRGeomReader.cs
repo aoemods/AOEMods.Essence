@@ -16,7 +16,7 @@ public class RRGeomReader : IRRGeomReader
     /// <returns>GeometryObjects read from the stream.</returns>
     public static IEnumerable<GeometryObject> ReadRRGeom(Stream stream)
     {
-        using var reader = new ChunkyFileReader(stream);
+        using var reader = new ChunkyFileReader(stream, Encoding.UTF8, true);
 
         var rootNode = (IChunkyFolderNode)ChunkyFile.FromStream(stream).RootNodes.Single();
 

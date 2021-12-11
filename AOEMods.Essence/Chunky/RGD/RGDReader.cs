@@ -1,4 +1,5 @@
 ﻿using AOEMods.Essence.Chunky.Core;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky.RGD;
 
@@ -15,7 +16,7 @@ public class RGDReader : IRGDReader
     /// <exception cref="Exception">Thrown if zero or more than DATA KEYS or AEGD chunks are present.</exception>
     public static IList<RGDNode> ReadRGD(Stream stream)
     {
-        using var reader = new ChunkyFileReader(stream);
+        using var reader = new ChunkyFileReader(stream, Encoding.UTF8, true);
 
         reader.ReadChunkyFileHeader();
         var chunkHeaders = reader.ReadChunkHeaders().ToArray();

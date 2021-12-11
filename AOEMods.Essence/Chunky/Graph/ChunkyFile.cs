@@ -10,10 +10,14 @@ public class ChunkyFile : IChunkyFile
     /// <summary>
     /// Nodes of the root chunks of the Relic Chunky file.
     /// </summary>
-    public IEnumerable<IChunkyNode> RootNodes =>
-        StreamEnumerableUtil.WithPosition(
-            stream, dataPosition, ChunkyNode.FromStream(stream, dataLength)
-        );
+    public IEnumerable<IChunkyNode> RootNodes
+    {
+        get
+        {
+            stream.Position = dataPosition;
+            return ChunkyNode.FromStream(stream, dataLength);
+        }
+    }
 
     /// <summary>
     /// Header of the Relic Chunky file.

@@ -10,10 +10,14 @@ public class ChunkyFolderNode : ChunkyNode, IChunkyFolderNode
     /// <summary>
     /// Child chunk nodes of the FOLD node.
     /// </summary>
-    public IEnumerable<IChunkyNode> Children =>
-        StreamEnumerableUtil.WithPosition(
-            dataStream, Header.DataPosition, FromStream(dataStream, Header.Length)
-        );
+    public IEnumerable<IChunkyNode> Children
+    {
+        get
+        {
+            dataStream.Position = Header.DataPosition;
+            return FromStream(dataStream, Header.Length);
+        }
+    }
 
     /// <summary>
     /// Initializes a chunk FOLD node from a header and its data stream.

@@ -16,7 +16,7 @@ public class RRMaterialReader : IRRMaterialReader
     /// <returns>Materials read from the stream.</returns>
     public static IEnumerable<Material> ReadRRMaterial(Stream stream, string? materialName = null)
     {
-        using var reader = new ChunkyFileReader(stream);
+        using var reader = new ChunkyFileReader(stream, Encoding.UTF8, true);
 
         var chunky = ChunkyFile.FromStream(stream);
         var materialNodes = chunky.RootNodes

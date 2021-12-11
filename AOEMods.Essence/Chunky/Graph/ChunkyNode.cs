@@ -1,4 +1,5 @@
 ﻿using AOEMods.Essence.Chunky.Core;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky.Graph;
 
@@ -47,7 +48,7 @@ public abstract class ChunkyNode : IChunkyNode
 
     private static IEnumerable<IChunkyNode> FromStreamImpl(Stream stream, long length)
     {
-        var reader = new ChunkyFileReader(stream);
+        var reader = new ChunkyFileReader(stream, Encoding.UTF8, true);
         foreach (var header in reader.ReadChunkHeaders(length))
         {
             switch (header.Type)
