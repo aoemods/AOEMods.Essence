@@ -19,7 +19,7 @@ namespace AOEMods.Essence.CLI.Test
             string textFileName = "testfile.txt";
             File.WriteAllText(Path.Combine(inPath, textFileName), textFileText);
 
-            string outPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.sga");
+            string outPath = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetRandomFileName(), ".sga"));
             string archiveName = "test";
 
             // Pack the test folder into an sga archive

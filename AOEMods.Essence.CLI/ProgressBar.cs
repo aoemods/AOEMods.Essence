@@ -1,6 +1,8 @@
 // MIT License by Daniel S Wolf, https://gist.github.com/DanielSWolf/0ab6a96899cc5377bf54
 using System.Text;
 
+namespace AOEMods.Essence.CLI;
+
 /// <summary>
 /// An ASCII progress bar
 /// </summary>

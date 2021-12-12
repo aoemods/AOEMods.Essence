@@ -209,7 +209,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     private void OpenWithDefaultApplication(Stream stream, string extension)
     {
         // Write stream to temp file
-        string path = Path.ChangeExtension(Path.GetTempFileName(), extension);
+        string path = Path.ChangeExtension(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), extension);
         using (var outFile = File.Create(path))
         {
             stream.CopyTo(outFile);
