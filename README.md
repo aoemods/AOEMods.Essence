@@ -1,5 +1,6 @@
 # AOEMods.Essence
 [![master build status](https://github.com/aoemods/AOEMods.Essence/workflows/.NET/badge.svg?branch=master)](https://github.com/aoemods/AOEMods.Essence/actions/workflows/dotnet.yml?query=branch%3Amaster)
+[![NuGet](https://img.shields.io/nuget/v/AOEMods.Essence?color=blue&label=NuGet)](https://www.nuget.org/packages/AOEMods.Essence/)
 
 C# library and tools for working with Age of Empire 4's Essence engine.
 
