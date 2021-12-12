@@ -38,7 +38,7 @@ public class ChunkyNodeViewModel : ObservableRecipient
 
         if (e.PropertyName == nameof(Node))
         {
-            if (Node != null && Node is IChunkyFolderNode folderNode)
+            if (Node is IChunkyFolderNode folderNode)
             {
                 Children = new(folderNode.Children.Select(child => new ChunkyNodeViewModel()
                 {

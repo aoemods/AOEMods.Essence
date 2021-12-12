@@ -23,8 +23,8 @@ public class ArchiveWriter : BinaryWriter
     {
     }
 
-    private MemoryStream archiveData = new();
-    private MemoryStream archiveStrings = new();
+    private readonly MemoryStream archiveData = new();
+    private readonly MemoryStream archiveStrings = new();
 
     /// <summary>
     /// Adds a string to the archive's string blob. Use WriteStrings to write the
@@ -103,7 +103,7 @@ public class ArchiveWriter : BinaryWriter
         Write(header.Signature);
         if (header.HeaderBlobOffset != (ulong)BaseStream.Position)
         {
-            throw new Exception("Header length or offset incorrect.");
+            throw new ArgumentException("Header length or offset incorrect.");
         }
 
         Write(new byte[header.HeaderBlobOffset - (ulong)BaseStream.Position]);

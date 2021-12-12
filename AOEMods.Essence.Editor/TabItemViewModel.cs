@@ -16,7 +16,7 @@ namespace AOEMods.Essence.Editor
 
         public ICommand CloseTabCommand { get; }
 
-        public TabItemViewModel()
+        protected TabItemViewModel()
         {
             CloseTabCommand = new RelayCommand(CloseTab);
         }

@@ -1,5 +1,6 @@
 ﻿using System.Security;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace AOEMods.Essence.Chunky.RGD;
@@ -82,17 +83,41 @@ public static class GameDataXmlUtil
 
         RGDNode XmlElementToRgdNode(XElement element)
         {
-            RGDDataType type = Enum.Parse<RGDDataType>(element.Attribute("Type").Value);
+            var keyAttribute = element.Attribute("Key");
+            var typeAttribute = element.Attribute("Type");
+            var valueAttribute = element.Attribute("Value");
+
+            if (keyAttribute == null)
+            {
+                throw new ArgumentException($"Key attribute for element {element.Name} on line {((IXmlLineInfo)element).LineNumber} was not set.");
+            }
+
+            if (typeAttribute == null)
+            {
+                throw new ArgumentException($"Type attribute for element {element.Name} on line {((IXmlLineInfo)element).LineNumber} was not set.");
+            }
+
+            if (valueAttribute == null)
+            {
+                throw new ArgumentException($"Value attribute for element {element.Name} on line {((IXmlLineInfo)element).LineNumber} was not set.");
+            }
+
+            RGDDataType type = Enum.Parse<RGDDataType>(typeAttribute.Value);
             object value = type switch
             {
-                RGDDataType.Float => float.Parse(element.Attribute("Value").Value),
-                RGDDataType.Int => int.Parse(element.Attribute("Value").Value),
-                RGDDataType.Boolean => bool.Parse(element.Attribute("Value").Value),
-                RGDDataType.CString => element.Attribute("Value").Value,
+                RGDDataType.Float => float.Parse(valueAttribute.Value),
+                RGDDataType.Int => int.Parse(valueAttribute.Value),
+                RGDDataType.Boolean => bool.Parse(valueAttribute.Value),
+                RGDDataType.CString => valueAttribute.Value,
                 RGDDataType.List or RGDDataType.List2 => element.Elements().Select(XmlElementToRgdNode).ToArray(),
                 _ => throw new NotImplementedException()
             };
-            return new RGDNode(element.Attribute("Key").Value, value);
+            return new RGDNode(keyAttribute.Value, value);
+        }
+
+        if (doc.Root == null)
+        {
+            throw new ArgumentException("No root element could be found.");
         }
 
         var rootElements = doc.Root.Elements();

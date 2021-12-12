@@ -7,7 +7,7 @@ namespace AOEMods.Essence.Chunky.Core;
 /// </summary>
 public class ChunkyFileReader : BinaryReader
 {
-    private Encoding encoding;
+    private readonly Encoding encoding;
 
     public ChunkyFileReader(Stream input) : base(input)
     {

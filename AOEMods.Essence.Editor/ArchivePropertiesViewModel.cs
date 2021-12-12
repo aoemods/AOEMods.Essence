@@ -64,7 +64,7 @@ public class ArchivePropertiesViewModel : ObservableRecipient
         {
             if (SignatureString == null || Name == null)
             {
-                throw new Exception("Tried to apply archive properties but archive was not set.");
+                throw new InvalidOperationException("Tried to apply archive properties but archive was not set.");
             }
 
             Archive.Name = Name;

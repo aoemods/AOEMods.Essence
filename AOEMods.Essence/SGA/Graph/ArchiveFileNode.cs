@@ -19,11 +19,11 @@ public class ArchiveFileNode : IArchiveFileNode
     /// </summary>
     public string Name { get; set; }
 
-    private Stream dataStream;
-    private long dataPosition;
-    private long dataLength;
-    private long dataUncompressedLength;
-    private FileStorageType storageType;
+    private readonly Stream dataStream;
+    private readonly long dataPosition;
+    private readonly long dataLength;
+    private readonly long dataUncompressedLength;
+    private readonly FileStorageType storageType;
 
     /// <summary>
     /// Initializes an ArchiveFileNode from values as usually stored in an SGA file.
@@ -70,7 +70,7 @@ public class ArchiveFileNode : IArchiveFileNode
                     return decoded.ToArray();
                 }
             default:
-                throw new Exception($"Unknown storage type {storageType}");
+                throw new NotImplementedException($"Unknown storage type {storageType}");
         }
     }
 }

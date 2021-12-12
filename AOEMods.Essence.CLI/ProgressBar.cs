@@ -6,13 +6,14 @@ namespace AOEMods.Essence.CLI;
 /// <summary>
 /// An ASCII progress bar
 /// </summary>
-public class ProgressBar : IDisposable, IProgress<double>
+public sealed class ProgressBar : IDisposable, IProgress<double>
 {
     private const int blockCount = 10;
     private readonly TimeSpan animationInterval = TimeSpan.FromSeconds(1.0 / 8);
     private const string animation = @"|/-\";
 
     private readonly Timer timer;
+    private readonly object timerLock = new();
 
     private double currentProgress = 0;
     private string currentText = string.Empty;
@@ -41,7 +42,7 @@ public class ProgressBar : IDisposable, IProgress<double>
 
     private void TimerHandler(object? state)
     {
-        lock (timer)
+        lock (timerLock)
         {
             if (disposed) return;
 
@@ -93,11 +94,10 @@ public class ProgressBar : IDisposable, IProgress<double>
 
     public void Dispose()
     {
-        lock (timer)
+        lock (timerLock)
         {
             disposed = true;
             UpdateText(string.Empty);
         }
     }
-
 }

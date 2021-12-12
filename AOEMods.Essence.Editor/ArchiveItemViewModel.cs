@@ -52,7 +52,7 @@ namespace AOEMods.Essence.Editor
         private IArchiveNode? node = null;
 
         private ObservableCollection<ArchiveItemViewModel>? children = null;
-        private ArchiveItemViewModel? parentViewModel = null;
+        private readonly ArchiveItemViewModel? parentViewModel = null;
         private bool renaming;
 
         public ICommand ExportCommand { get; }
@@ -83,7 +83,7 @@ namespace AOEMods.Essence.Editor
 
             if (e.PropertyName == nameof(Node))
             {
-                if (Node != null && Node is IArchiveFolderNode folderNode)
+                if (Node is IArchiveFolderNode folderNode)
                 {
                     Children = new ObservableCollection<ArchiveItemViewModel>(folderNode.Children.Select(child => new ArchiveItemViewModel(child, this)));
                 }
@@ -144,7 +144,7 @@ namespace AOEMods.Essence.Editor
 
         private void AddFile()
         {
-            if (Node != null && Node is IArchiveFolderNode folderNode)
+            if (Node is IArchiveFolderNode folderNode)
             {
                 OpenFileDialog dialog = new OpenFileDialog()
                 {
@@ -159,7 +159,7 @@ namespace AOEMods.Essence.Editor
 
                     if (Children == null)
                     {
-                        throw new Exception("Folder node view model Children was null");
+                        throw new InvalidOperationException("Folder node view model Children was null");
                     }
 
                     Children.Add(new ArchiveItemViewModel(fileNode, this));

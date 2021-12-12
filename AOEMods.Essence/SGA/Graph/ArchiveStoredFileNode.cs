@@ -15,7 +15,7 @@ public class ArchiveStoredFileNode : IArchiveFileNode
     /// </summary>
     public string Name { get; set; }
 
-    private string filePath;
+    private readonly string filePath;
 
     public ArchiveStoredFileNode(string name, string filePath, IArchiveNode? parent = null)
     {

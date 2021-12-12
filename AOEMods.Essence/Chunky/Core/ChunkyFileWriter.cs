@@ -7,7 +7,7 @@ namespace AOEMods.Essence.Chunky.Core;
 /// </summary>
 public class ChunkyFileWriter : BinaryWriter
 {
-    private Encoding encoding;
+    private readonly Encoding encoding;
 
     public ChunkyFileWriter(Stream output) : base(output)
     {

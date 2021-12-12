@@ -115,7 +115,7 @@ public class RGDWriter : IRGDWriter
                     WriteChunkyList(dataWriter, nodes.Select(node => new KeyValueEntry((ulong)((long)node.Key.GetHashCode() + int.MaxValue), node.Value)).ToArray());
                     break;
                 default:
-                    throw new Exception($"Unknown type {list[i].Value}");
+                    throw new NotImplementedException($"Unknown type {list[i].Value}");
             }
         }
 

@@ -3,7 +3,7 @@
 /// <summary>
 /// Data type of a DATA AEGD chunk entry.
 /// </summary>
-public enum RGDDataType : int
+public enum RGDDataType
 {
     /// <summary>
     /// 32 bit float.

@@ -7,7 +7,7 @@ namespace AOEMods.Essence.SGA.Core;
 /// </summary>
 public class ArchiveReader : BinaryReader
 {
-    private Encoding encoding;
+    private readonly Encoding encoding;
 
     public ArchiveReader(Stream input) : base(input)
     {
@@ -53,7 +53,7 @@ public class ArchiveReader : BinaryReader
         byte[] array = ReadBytes(charCount * charSize);
         if (array == null || array.Length != charCount * charSize)
         {
-            throw new ApplicationException($"File length is not sufficient for fixed string of length {charCount * charSize}.");
+            throw new ArgumentException($"File length is not sufficient for fixed string of length {charCount * charSize}.");
         }
         for (int i = 0; i < charCount; i++)
         {

@@ -20,12 +20,10 @@ namespace AOEMods.Essence.Editor
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue is ChunkyNodeViewModel nodeViewModel)
+            if (e.NewValue is ChunkyNodeViewModel nodeViewModel &&
+                nodeViewModel.Node is IChunkyDataNode dataNode)
             {
-                if (nodeViewModel.Node is IChunkyDataNode dataNode)
-                {
-                    ViewModel.DataStream = new MemoryStream(dataNode.GetData().ToArray());
-                }
+                ViewModel.DataStream = new MemoryStream(dataNode.GetData().ToArray());
             }
 
             e.Handled = false;

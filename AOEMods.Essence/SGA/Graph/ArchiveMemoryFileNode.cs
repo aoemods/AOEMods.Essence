@@ -15,7 +15,7 @@ public class ArchiveMemoryFileNode : IArchiveFileNode
     /// </summary>
     public string Name { get; set; }
 
-    private byte[] data;
+    private readonly byte[] data;
 
     /// <summary>
     /// Initializes an ArchiveMemoryFileNode from an array of bytes.

@@ -60,7 +60,7 @@ public abstract class ChunkyNode : IChunkyNode
                     yield return new ChunkyStreamDataNode(header, stream);
                     break;
                 default:
-                    throw new Exception($"Unknown chunk type {header.Type}");
+                    throw new NotImplementedException($"Unknown chunk type {header.Type}");
             }
         }
     }

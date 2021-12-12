@@ -49,7 +49,7 @@ public class RRMaterialReader : IRRMaterialReader
                     string value = Encoding.UTF8.GetString(reader.ReadBytes((int)valueLength));
                     if (textures.ContainsKey(key) && textures[key] != value)
                     {
-                        throw new Exception($"Textures already contains key {key} but does not match value {value}");
+                        throw new ArgumentException($"Textures already contains key {key} but does not match value {value}");
                     }
                     textures[key] = value;
                 }

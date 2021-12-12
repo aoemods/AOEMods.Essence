@@ -26,22 +26,22 @@ public class RGDReader : IRGDReader
 
         if (keysHeaders.Length == 0)
         {
-            throw new Exception("No DATA KEYS chunk present");
+            throw new ArgumentException("No DATA KEYS chunk present");
         }
 
         if (keysHeaders.Length > 1)
         {
-            throw new Exception("More than one DATA KEYS chunk present");
+            throw new ArgumentException("More than one DATA KEYS chunk present");
         }
 
         if (kvsHeaders.Length == 0)
         {
-            throw new Exception("No DATA AEGD chunk present");
+            throw new ArgumentException("No DATA AEGD chunk present");
         }
 
         if (kvsHeaders.Length > 1)
         {
-            throw new Exception("More than one DATA AEGD chunk present");
+            throw new ArgumentException("More than one DATA AEGD chunk present");
         }
 
         var keys = ReadKeysDataChunk(reader, keysHeaders[0]);
