@@ -26,4 +26,10 @@
     <ProjectReference Include="..\AOEMods.Essence\AOEMods.Essence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\TestArchive.sga">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
