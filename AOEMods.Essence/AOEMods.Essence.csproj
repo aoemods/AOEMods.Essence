@@ -5,10 +5,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyVersion></AssemblyVersion>
-    <Version>$(VersionPrefix)0.5.0</Version>
+    <Version>$(VersionPrefix)0.6.0</Version>
     <LangVersion>preview</LangVersion>
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <Description>Library and tools for working with Age of Empire 4's Essence engine.</Description>
+    <RepositoryUrl>https://github.com/aoemods/AOEMods.Essence</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/aoemods/AOEMods.Essence</PackageProjectUrl>
+    <PackageIcon></PackageIcon>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.1.0" />

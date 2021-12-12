@@ -1,4 +1,6 @@
 # AOEMods.Essence
+[![master build status](https://github.com/aoemods/AOEMods.Essence/workflows/.NET/badge.svg?branch=master)](https://github.com/aoemods/AOEMods.Essence/actions/workflows/dotnet.yml?query=branch%3Amaster)
+
 C# library and tools for working with Age of Empire 4's Essence engine.
 
 Join the AOE4 modding discord for information sharing, discussions or if you need help: https://discord.gg/h8FX9Uq3vG
