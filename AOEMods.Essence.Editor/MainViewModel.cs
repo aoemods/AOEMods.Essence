@@ -10,6 +10,7 @@ using Microsoft.Toolkit.Mvvm.Messaging.Messages;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using SixLabors.ImageSharp.Formats.Png;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -20,7 +21,14 @@ using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor;
 
-public record OpenStreamMessage(Stream Stream, string Extension, string Title);
+public enum OpenStreamType
+{
+    ViewerFromExtension,
+    ChunkyViewer,
+    DefaultApplication,
+}
+
+public record OpenStreamMessage(Stream Stream, string Extension, OpenStreamType OpenType, string Title);
 public class ArchivesRequest : RequestMessage<IEnumerable<IArchive>>
 {
 }
@@ -69,7 +77,20 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
 
     public void Receive(OpenStreamMessage message)
     {
-        OpenStream(message.Stream, message.Extension, message.Title);
+        switch (message.OpenType)
+        {
+            case OpenStreamType.ViewerFromExtension:
+                OpenStreamWithViewerFromExtension(message.Stream, message.Extension, message.Title);
+                break;
+            case OpenStreamType.ChunkyViewer:
+                AddChunkyTab(message.Stream, message.Title);
+                break;
+            case OpenStreamType.DefaultApplication:
+                OpenWithDefaultApplication(message.Stream, message.Extension);
+                break;
+            default:
+                throw new NotImplementedException($"Unknown open stream type {message.OpenType}");
+        }
     }
 
     public void Receive(CloseTabMessage message)
@@ -81,10 +102,17 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
     {
         if (droppedObject.GetDataPresent(DataFormats.FileDrop))
         {
-            string[] files = (string[])droppedObject.GetData(DataFormats.FileDrop);
-            foreach (var file in files)
+            string[] paths = (string[])droppedObject.GetData(DataFormats.FileDrop);
+            foreach (var path in paths)
             {
-                OpenFile(file);
+                if (Directory.Exists(path))
+                {
+                    AddDirectoryTab(path);
+                }
+                else
+                {
+                    OpenFile(path);
+                }
             }
         }
     }
@@ -105,7 +133,7 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
 
     private void OpenFile(string filePath)
     {
-        OpenStream(File.OpenRead(filePath), Path.GetExtension(filePath), Path.GetFileName(filePath));
+        OpenStreamWithViewerFromExtension(File.OpenRead(filePath), Path.GetExtension(filePath), Path.GetFileName(filePath));
     }
 
     private void OpenFilesInDirectoryDialog()
@@ -139,17 +167,11 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
 
         if (dialog.ShowDialog() == true)
         {
-            TabItems.Add(new ArchiveViewModel()
-            {
-                Archive = ArchiveReaderHelper.DirectoryToArchive(dialog.SelectedPath, "data"),
-                TabTitle = new DirectoryInfo(dialog.SelectedPath).Name,
-            });
-
-            SelectedTabIndex = TabItems.Count - 1;
+            AddDirectoryTab(dialog.SelectedPath);
         }
     }
 
-    private void OpenStream(Stream stream, string extension, string title)
+    private void OpenStreamWithViewerFromExtension(Stream stream, string extension, string title)
     {
         switch (extension)
         {
@@ -166,7 +188,6 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
                 AddRRGeomTab(stream, title);
                 break;
             case ".rrmaterial":
-            case "chunky":
                 AddChunkyTab(stream, title);
                 break;
             case ".rec":
@@ -181,6 +202,34 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
                 );
                 return;
         }
+
+        SelectedTabIndex = TabItems.Count - 1;
+    }
+
+    private void OpenWithDefaultApplication(Stream stream, string extension)
+    {
+        // Write stream to temp file
+        string path = Path.ChangeExtension(Path.GetTempFileName(), extension);
+        using (var outFile = File.Create(path))
+        {
+            stream.CopyTo(outFile);
+        }
+
+        // Open the temp file with explorer, which will open
+        // it with the default application.
+        using Process tempFileProcess = new Process();
+        tempFileProcess.StartInfo.FileName = "explorer";
+        tempFileProcess.StartInfo.Arguments = $"\"{path}\"";
+        tempFileProcess.Start();
+    }
+
+    private void AddDirectoryTab(string path)
+    {
+        TabItems.Add(new ArchiveViewModel()
+        {
+            Archive = ArchiveReaderHelper.DirectoryToArchive(path, "data"),
+            TabTitle = new DirectoryInfo(path).Name,
+        });
 
         SelectedTabIndex = TabItems.Count - 1;
     }

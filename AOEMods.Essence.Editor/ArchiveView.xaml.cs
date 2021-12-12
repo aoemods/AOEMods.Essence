@@ -51,7 +51,8 @@ namespace AOEMods.Essence.Editor
                 itemViewModel.Node is IArchiveFileNode file)
             {
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
-                    new MemoryStream(file.GetData().ToArray()), file.Extension, file.Name
+                    new MemoryStream(file.GetData().ToArray()), file.Extension,
+                    OpenStreamType.ViewerFromExtension, file.Name
                 ));
             }
         }
@@ -65,7 +66,23 @@ namespace AOEMods.Essence.Editor
                 itemViewModel.Node is IArchiveFileNode file)
             {
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
-                    new MemoryStream(file.GetData().ToArray()), "chunky", file.Name
+                    new MemoryStream(file.GetData().ToArray()), file.Extension,
+                    OpenStreamType.ChunkyViewer, file.Name
+                ));
+            }
+        }
+
+        private void OnOpenWithDefaultApplicationClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.Parent is ContextMenu contextMenu &&
+                contextMenu.PlacementTarget is FrameworkElement element &&
+                element.DataContext is ArchiveItemViewModel itemViewModel &&
+                itemViewModel.Node is IArchiveFileNode file)
+            {
+                WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
+                    new MemoryStream(file.GetData().ToArray()), file.Extension,
+                    OpenStreamType.DefaultApplication, file.Name
                 ));
             }
         }

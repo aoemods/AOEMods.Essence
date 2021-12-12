@@ -113,8 +113,8 @@ namespace AOEMods.Essence.Editor
             if (node is IArchiveFileNode fileNode)
             {
                 WeakReferenceMessenger.Default.Send(new OpenStreamMessage(
-                    new MemoryStream(fileNode.GetData().ToArray()),
-                    fileNode.Extension, fileNode.Name
+                    new MemoryStream(fileNode.GetData().ToArray()), fileNode.Extension,
+                    OpenStreamType.ViewerFromExtension, fileNode.Name
                 ));
             }
         }

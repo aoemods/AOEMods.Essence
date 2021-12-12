@@ -28,6 +28,7 @@
                                     <MenuItem Header="Add file" Click="OnAddFileClicked" />
                                     <MenuItem Header="Open" Click="OnOpenClicked" />
                                     <MenuItem Header="Open in Chunky viewer" Click="OnOpenInChunkyViewerClicked" />
+                                    <MenuItem Header="Open with default application" Click="OnOpenWithDefaultApplicationClicked" />
                                     <MenuItem Header="Export" Click="OnExportClicked" />
                                     <MenuItem Header="Rename" Click="OnRenameClicked" />
                                     <MenuItem Header="Delete" Click="OnDeleteClicked" />
