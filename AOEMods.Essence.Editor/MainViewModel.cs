@@ -215,12 +215,10 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
             stream.CopyTo(outFile);
         }
 
-        // Open the temp file with explorer, which will open
-        // it with the default application.
-        using Process tempFileProcess = new Process();
-        tempFileProcess.StartInfo.FileName = "explorer";
-        tempFileProcess.StartInfo.Arguments = $"\"{path}\"";
-        tempFileProcess.Start();
+        Process.Start(new ProcessStartInfo(path)
+        {
+            UseShellExecute = true,
+        });
     }
 
     private void AddDirectoryTab(string path)
