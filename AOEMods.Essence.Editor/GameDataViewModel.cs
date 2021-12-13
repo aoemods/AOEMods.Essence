@@ -1,4 +1,5 @@
-﻿using AOEMods.Essence.Chunky.RGD;
+﻿using AOEMods.Essence.Chunky;
+using AOEMods.Essence.Chunky.RGD;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
@@ -30,11 +31,13 @@ public class GameDataViewModel : TabItemViewModel
 
     public ICommand ExportJsonCommand { get; }
     public ICommand ExportXmlCommand { get; }
+    public ICommand ExportRgdCommand { get; }
 
     public GameDataViewModel()
     {
         ExportJsonCommand = new RelayCommand(ExportJson);
         ExportXmlCommand = new RelayCommand(ExportXml);
+        ExportRgdCommand = new RelayCommand(ExportRgd);
     }
 
     private void ExportJson()
@@ -64,13 +67,31 @@ public class GameDataViewModel : TabItemViewModel
 
             SaveFileDialog saveFileDialog = new SaveFileDialog()
             {
-                Filter = $"xml (*.xml)|*.json|All files (*.*)|*.*",
+                Filter = $"xml (*.xml)|*.xml|All files (*.*)|*.*",
                 FileName = "data.xml",
             };
 
             if (saveFileDialog.ShowDialog() == true)
             {
                 File.WriteAllText(saveFileDialog.FileName, gameDataXml, Encoding.ASCII);
+            }
+        }
+    }
+
+    private void ExportRgd()
+    {
+        if (RootNodes != null)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog()
+            {
+                Filter = $"rgd (*.rgd)|*.rgd|All files (*.*)|*.*",
+                FileName = "data.rgd",
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                using var outputFile = File.OpenWrite(saveFileDialog.FileName);
+                FormatWriter.WriteRGD(outputFile, RootNodes);
             }
         }
     }

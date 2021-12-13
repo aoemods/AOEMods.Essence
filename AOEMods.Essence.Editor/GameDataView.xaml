@@ -12,6 +12,7 @@
             <ToolBar HorizontalAlignment="Left">
                 <Button Content="Export JSON" Command="{Binding ExportJsonCommand}" />
                 <Button Content="Export XML" Command="{Binding ExportXmlCommand}" />
+                <Button Content="Export RGD" Command="{Binding ExportRgdCommand}" />
             </ToolBar>
         </ToolBarTray>
         <TreeView ItemsSource="{Binding RootChildren}">
