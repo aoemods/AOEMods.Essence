@@ -12,8 +12,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6F2BABB1-22A8-417B-98A4-B3AD2628FE45}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE = LICENSE
 		README.md = README.md
+		.github\workflows\sonarcloud.yml = .github\workflows\sonarcloud.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AOEMods.Essence.CLI.Test", "AOEMods.Essence.CLI.Test\AOEMods.Essence.CLI.Test.csproj", "{9CBE730E-1DE4-4146-A2C4-27467BCF6646}"
