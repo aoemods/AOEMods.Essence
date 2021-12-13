@@ -46,6 +46,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"aoemods_AOEMods.Essence" /o:"aoemods" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"aoemods_AOEMods.Essence" /o:"aoemods" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.css.opencover.reportsPath="$(Build.SourcesDirectory)/CoverageLibrary.xml"
           dotnet build
+          dotnet test --collect:"XPlat Code Coverage" --results-directory $(Build.SourcesDirectory) AOEMods.Essence.Test
+          mv $(Build.SourcesDirectory)/**/*.xml $(Build.SourcesDirectory)/CoverageLibrary.xml
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
