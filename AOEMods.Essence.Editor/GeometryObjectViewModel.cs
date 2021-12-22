@@ -11,7 +11,7 @@ using System.Windows.Media.Media3D;
 
 namespace AOEMods.Essence.Editor;
 
-public class GeometryObjectViewModel : TabItemViewModel
+public class GeometryObjectViewModel : TabViewModel
 {
     public Model3D? Content
     {

@@ -9,16 +9,8 @@ using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor
 {
-    public class ArchiveViewModel : TabItemViewModel
+    public class ArchiveViewModel : TreeViewTabViewModel
     {
-        public ObservableCollection<ArchiveItemViewModel>? RootChildren
-        {
-            get => rootChildren;
-            set => SetProperty(ref rootChildren, value);
-        }
-
-        private ObservableCollection<ArchiveItemViewModel>? rootChildren = null;
-
         public IArchive? Archive
         {
             get => archive;
@@ -37,6 +29,9 @@ namespace AOEMods.Essence.Editor
             PackCommand = new RelayCommand(Pack);
             UnpackCommand = new RelayCommand(Unpack);
             OpenPropertiesCommand = new RelayCommand(OpenProperties);
+            ExpandCollapseAllCommand = new RelayCommand(ExpandCollapseAll);
+            IsExpanded = false;
+            SearchText = "";
         }
 
         private void Pack()
@@ -93,7 +88,7 @@ namespace AOEMods.Essence.Editor
             {
                 if (archive != null && archive.Tocs.Count > 0)
                 {
-                    RootChildren = new ObservableCollection<ArchiveItemViewModel>(
+                    RootChildren = new ObservableCollection<TreeViewTabItemViewModel>(
                         archive.Tocs[0].RootFolder.Children.Select(
                             child => new ArchiveItemViewModel(child, null)
                         )

@@ -34,7 +34,7 @@ namespace AOEMods.Essence.Editor
             if (e.ChangedButton == MouseButton.Middle &&
                 e.ButtonState == MouseButtonState.Pressed &&
                 sender is FrameworkElement element &&
-                element.DataContext is TabItemViewModel tabItemViewModel)
+                element.DataContext is TabViewModel tabItemViewModel)
             {
                 tabItemViewModel.CloseTabCommand.Execute(null);
                 e.Handled = true;

@@ -13,6 +13,22 @@
                 <Button Content="Export JSON" Command="{Binding ExportJsonCommand}" />
                 <Button Content="Export XML" Command="{Binding ExportXmlCommand}" />
                 <Button Content="Export RGD" Command="{Binding ExportRgdCommand}" />
+                <Button Content="Expand/Collapse" Command="{Binding ExpandCollapseAllCommand}" />
+                <Grid>
+                    <TextBox Width="229" Margin="10,0,1,0"  x:Name="SearchTermTextBox" Text="{Binding SearchText, Delay=500, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock IsHitTestVisible="False" Text="Enter Search Term Here" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="15,0,0,0" Foreground="DarkGray">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=SearchTermTextBox}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </ToolBar>
         </ToolBarTray>
         <TreeView ItemsSource="{Binding RootChildren}">
@@ -20,6 +36,10 @@
                 <HierarchicalDataTemplate DataType="{x:Type local:GameDataNodeViewModel}" ItemsSource="{Binding Children}">
                     <TextBlock Text="{Binding DisplayValue}"></TextBlock>
                 </HierarchicalDataTemplate>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+                    <Setter Property="Visibility" Value="{Binding Visibility}"/>
+                </Style>
             </TreeView.Resources>
         </TreeView>
     </DockPanel>

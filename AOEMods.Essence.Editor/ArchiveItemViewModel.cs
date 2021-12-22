@@ -9,11 +9,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor
 {
-    public class ArchiveItemViewModel : ObservableRecipient
+    public class ArchiveItemViewModel : TreeViewTabItemViewModel
     {
         public string? Name
         {
@@ -21,7 +22,7 @@ namespace AOEMods.Essence.Editor
             set => SetProperty(ref name, value);
         }
 
-        private string? name = null;
+        protected string? name = null;
 
         public bool Renaming
         {
@@ -37,12 +38,6 @@ namespace AOEMods.Essence.Editor
 
         private string renamingName = "";
 
-        public ObservableCollection<ArchiveItemViewModel>? Children
-        {
-            get => children;
-            set => SetProperty(ref children, value);
-        }
-
         public IArchiveNode? Node
         {
             get => node;
@@ -51,8 +46,6 @@ namespace AOEMods.Essence.Editor
 
         private IArchiveNode? node = null;
 
-        private ObservableCollection<ArchiveItemViewModel>? children = null;
-        private readonly ArchiveItemViewModel? parentViewModel = null;
         private bool renaming;
 
         public ICommand ExportCommand { get; }
@@ -62,12 +55,11 @@ namespace AOEMods.Essence.Editor
         public ICommand StartRenamingCommand { get; }
         public ICommand EndRenamingCommand { get; }
         public ICommand CancelRenamingCommand { get; }
+       
 
-        public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel? parentViewModel)
+        public ArchiveItemViewModel(IArchiveNode? node, ArchiveItemViewModel? parentViewModel) : base(parentViewModel)
         {
             Node = node;
-            this.parentViewModel = parentViewModel;
-
             ExportCommand = new RelayCommand(Export);
             DeleteCommand = new RelayCommand(Delete);
             OpenCommand = new RelayCommand(Open);
@@ -85,7 +77,7 @@ namespace AOEMods.Essence.Editor
             {
                 if (Node is IArchiveFolderNode folderNode)
                 {
-                    Children = new ObservableCollection<ArchiveItemViewModel>(folderNode.Children.Select(child => new ArchiveItemViewModel(child, this)));
+                    Children = new ObservableCollection<TreeViewTabItemViewModel>(folderNode.Children.Select(child => new ArchiveItemViewModel(child, this)));
                 }
                 else
                 {
@@ -132,10 +124,10 @@ namespace AOEMods.Essence.Editor
 
         private void Delete()
         {
-            if (parentViewModel?.Node != null && Node != null)
+            if (parentViewModel is ArchiveItemViewModel archiveParent && archiveParent.Node != null && Node != null)
             {
-                parentViewModel.Children?.Remove(this);
-                if (parentViewModel.Node is IArchiveFolderNode folderNode)
+                archiveParent.Children?.Remove(this);
+                if (archiveParent.Node is IArchiveFolderNode folderNode)
                 {
                     folderNode.Children.Remove(Node);
                 }
@@ -185,6 +177,11 @@ namespace AOEMods.Essence.Editor
                 Name = RenamingName;
                 Renaming = false;
             }
+        }
+
+        public override string GetSearchTarget()
+        {
+            return Name?.ToLowerInvariant().Trim() ?? string.Empty;
         }
     }
 }

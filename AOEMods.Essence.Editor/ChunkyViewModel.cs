@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace AOEMods.Essence.Editor
 {
-    public class ChunkyViewModel : TabItemViewModel
+    public class ChunkyViewModel : TabViewModel
     {
         public ObservableCollection<ChunkyNodeViewModel>? RootChildren
         {

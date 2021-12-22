@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace AOEMods.Essence.Editor;
 
-public class GameDataNodeViewModel : ObservableRecipient
+public class GameDataNodeViewModel : TreeViewTabItemViewModel
 {
     private static IReadOnlyDictionary<Type, string> TypeName = new Dictionary<Type, string>()
     {
@@ -40,14 +40,6 @@ public class GameDataNodeViewModel : ObservableRecipient
         get => Value == null ? null : string.Format("{0}: {1} ({2})", Key, Value is IList<RGDNode> ? $"{{{Children?.Count}}}" : Value, TypeName[Value.GetType()]);
     }
 
-    public ObservableCollection<GameDataNodeViewModel>? Children
-    {
-        get => children;
-        set => SetProperty(ref children, value);
-    }
-
-    private ObservableCollection<GameDataNodeViewModel>? children = null;
-
     public RGDNode? Node
     {
         get => node;
@@ -56,7 +48,7 @@ public class GameDataNodeViewModel : ObservableRecipient
 
     private RGDNode? node = null;
 
-    public GameDataNodeViewModel(RGDNode? node)
+    public GameDataNodeViewModel(RGDNode? node) : base()
     {
         Node = node;
     }
@@ -73,7 +65,7 @@ public class GameDataNodeViewModel : ObservableRecipient
                 Value = Node.Value;
                 if (Value is IList<RGDNode> children)
                 {
-                    Children = new ObservableCollection<GameDataNodeViewModel>(children.Select(child => new GameDataNodeViewModel(child)));
+                    Children = new ObservableCollection<TreeViewTabItemViewModel>(children.Select(child => new GameDataNodeViewModel(child)));
                 }
                 else
                 {
@@ -91,5 +83,10 @@ public class GameDataNodeViewModel : ObservableRecipient
         {
             OnPropertyChanged(nameof(DisplayValue));
         }
+    }
+
+    public override string GetSearchTarget()
+    {
+        return DisplayValue?.ToLowerInvariant().Trim() ?? key?.ToLowerInvariant().Trim() ?? string.Empty;
     }
 }

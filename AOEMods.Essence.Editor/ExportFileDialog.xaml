@@ -34,7 +34,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Click="OnExportClicked">Export</Button>
+            <Button Grid.Column="0" Click="OnExportClicked" IsEnabled="{Binding IsExportEnabled}">Export</Button>
             <Button Grid.Column="1" Click="OnCancelClicked">Cancel</Button>
         </Grid>
     </StackPanel>

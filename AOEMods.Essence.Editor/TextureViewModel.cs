@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 
 namespace AOEMods.Essence.Editor;
 
-public class TextureViewModel : TabItemViewModel
+public class TextureViewModel : TabViewModel
 {
     public BitmapImage? Image
     {

@@ -320,9 +320,9 @@ public static class ExportArchiveUtil
                         ".rrgeom" => new ExportRRGeomViewModel(),
                         ".rgd" => new ExportRgdViewModel(),
                         _ => null
-                    })
+                    }, file.Name, file.Extension)
                     {
-                        Title = title
+                        Title = title,
                     };
 
                     dialogResult = dialog.ShowDialog();

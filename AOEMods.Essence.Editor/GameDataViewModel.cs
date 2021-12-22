@@ -11,16 +11,8 @@ using System.Windows.Input;
 
 namespace AOEMods.Essence.Editor;
 
-public class GameDataViewModel : TabItemViewModel
+public class GameDataViewModel : TreeViewTabViewModel
 {
-    public ObservableCollection<GameDataNodeViewModel>? RootChildren
-    {
-        get => rootChildren;
-        set => SetProperty(ref rootChildren, value);
-    }
-
-    private ObservableCollection<GameDataNodeViewModel>? rootChildren = null;
-
     public ObservableCollection<RGDNode>? RootNodes
     {
         get => rootNodes;
@@ -104,7 +96,7 @@ public class GameDataViewModel : TabItemViewModel
         {
             if (RootNodes != null)
             {
-                RootChildren = new ObservableCollection<GameDataNodeViewModel>(RootNodes.Select(node => new GameDataNodeViewModel(node)));
+                RootChildren = new ObservableCollection<TreeViewTabItemViewModel>(RootNodes.Select(node => new GameDataNodeViewModel(node)));
             }
             else
             {

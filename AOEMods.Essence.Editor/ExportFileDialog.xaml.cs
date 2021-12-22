@@ -9,11 +9,13 @@ namespace AOEMods.Essence.Editor
     {
         public ExportFileDialogViewModel ViewModel => (ExportFileDialogViewModel)DataContext;
 
-        public ExportFileDialog(object? exportOptionsViewModel)
+        public ExportFileDialog(object? exportOptionsViewModel, string filename, string extension)
         {
             DataContext = new ExportFileDialogViewModel()
             {
-                ExportOptionsViewModel = exportOptionsViewModel
+                ExportOptionsViewModel = exportOptionsViewModel,
+                InitialFileName = filename,
+                Extension = extension
             };
 
             InitializeComponent();

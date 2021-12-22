@@ -33,7 +33,7 @@ public class ArchivesRequest : RequestMessage<IEnumerable<IArchive>>
 {
 }
 
-public record CloseTabMessage(TabItemViewModel TabItemViewModel);
+public record CloseTabMessage(TabViewModel TabItemViewModel);
 
 public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>, IRecipient<ArchivesRequest>, IRecipient<CloseTabMessage>
 {
@@ -196,11 +196,18 @@ public class MainViewModel : ObservableRecipient, IRecipient<OpenStreamMessage>,
                 Trace.WriteLine($"Remaining data: {stream.Length - stream.Position:X} at {stream.Position:X}");
                 break;
             default:
-                MessageBox.Show(
-                    $"Unsupported extension '{extension}'", "Unsupported extension",
-                    MessageBoxButton.OK, MessageBoxImage.Error
-                );
+                var file = Path.GetTempPath() + title;
+                using (var fileStream = File.OpenWrite(file))
+                {
+                    stream.CopyTo(fileStream);
+                }
+                Process proc = new Process();
+                proc.EnableRaisingEvents = false;
+                proc.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "rundll32.exe");
+                proc.StartInfo.Arguments = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll") + ",OpenAs_RunDLL " + file;
+                proc.Start();
                 return;
+
         }
 
         SelectedTabIndex = TabItems.Count - 1;
