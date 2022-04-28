@@ -19,6 +19,9 @@
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.Resources>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArchiveItemViewModel}" ItemsSource="{Binding Children}">
                     <Grid>
                         <Label Padding="0" Visibility="{Binding Renaming, Converter={StaticResource NotBoolToVis}}"
