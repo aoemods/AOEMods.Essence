@@ -37,6 +37,8 @@ namespace AOEMods.Essence.Editor
 
         private string renamingName = "";
 
+        public bool IsExpanded { get; set; }
+
         public ObservableCollection<ArchiveItemViewModel>? Children
         {
             get => children;
