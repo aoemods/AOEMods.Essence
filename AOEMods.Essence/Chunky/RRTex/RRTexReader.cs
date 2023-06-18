@@ -78,6 +78,18 @@ public class RRTexReader : IRRTexReader
         int mipCount = reader.ReadInt32();
         int unknown4 = reader.ReadInt32();
 
+        if (unknown1 >= 6)
+        {
+            // New struct fields in version 6
+            byte unknown5 = reader.ReadByte();
+            int unknown6 = reader.ReadInt32();
+
+            if (unknown5 != 0)
+                Console.WriteLine($"RRTexDataTman.unknown5 not 0 (was {unknown5})");
+            if (unknown6 != 1)
+                Console.WriteLine($"RRTexDataTman.unknown6 not 1 (was {unknown6})");
+        }
+
         int[] mipTextureCounts = new int[mipCount];
         for (int i = 0; i < mipCount; i++)
         {
