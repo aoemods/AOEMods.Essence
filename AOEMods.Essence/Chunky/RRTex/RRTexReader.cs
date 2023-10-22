@@ -90,6 +90,22 @@ public class RRTexReader : IRRTexReader
                 Console.WriteLine($"RRTexDataTman.unknown6 not 1 (was {unknown6})");
         }
 
+        if (unknown4 == 1)
+        {
+
+        }
+        else if (unknown4 == 2)
+        {
+            int unknown7 = reader.ReadInt32();
+
+            if (unknown7 != 1)
+                Console.WriteLine($"RRTexDataTman.unknown7 not 1 (was {unknown7})");
+        }
+        else
+        {
+            Console.WriteLine($"RRTexDataTman.unknown4 not 1 or 2 (was {unknown4})");
+        }
+
         int[] mipTextureCounts = new int[mipCount];
         for (int i = 0; i < mipCount; i++)
         {
@@ -109,6 +125,12 @@ public class RRTexReader : IRRTexReader
                 sizeUncompressed[i][j] = reader.ReadInt32();
                 sizeCompressed[i][j] = reader.ReadInt32();
             }
+        }
+
+        long realLength = reader.BaseStream.Position - header.DataPosition;
+        if (header.Length != realLength)
+        {
+            Console.WriteLine($"RRTexDataTman header specifies {header.Length} bytes, but we read {realLength} bytes. Image likely to be corrupt and AOEMods.Essence may need to be patched.");
         }
 
         return new(
