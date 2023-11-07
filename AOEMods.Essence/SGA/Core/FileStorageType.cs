@@ -18,5 +18,15 @@ public enum FileStorageType : byte
     /// <summary>
     /// Stored compressed.
     /// </summary>
-    BufferCompress
+    BufferCompress,
+
+    /// <summary>
+    /// Stored compressed.
+    /// </summary>
+    StreamCompressBrotli,
+
+    /// <summary>
+    /// Stored compressed.
+    /// </summary>
+    BufferCompressBrotli
 }
