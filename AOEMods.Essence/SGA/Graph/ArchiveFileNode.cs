@@ -1,4 +1,5 @@
 ﻿using AOEMods.Essence.SGA.Core;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
 
@@ -66,6 +67,15 @@ public class ArchiveFileNode : IArchiveFileNode
                     using var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress, leaveOpen: true);
                     MemoryStream decoded = new((int)dataUncompressedLength);
                     deflateStream.CopyTo(decoded);
+
+                    return decoded.ToArray();
+                }
+            case FileStorageType.StreamCompressBrotli:
+            case FileStorageType.BufferCompressBrotli:
+                {
+                    using var brotliStream = new BrotliStream(dataStream, CompressionMode.Decompress, leaveOpen: true);
+                    MemoryStream decoded = new((int)dataUncompressedLength);
+                    brotliStream.CopyTo(decoded);
 
                     return decoded.ToArray();
                 }
