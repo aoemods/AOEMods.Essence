@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace AOEMods.Essence.Chunky.RGD;
 
@@ -58,6 +59,8 @@ public static class GameDataJsonUtil
                 {
                     bool b => b ? "true" : "false",
                     string s => $"\"{s.Replace("\\", "\\\\")}\"",
+                    float d => d.ToString(CultureInfo.InvariantCulture),
+                    double d => d.ToString(CultureInfo.InvariantCulture),
                     _ => node.Value,
                 });
 

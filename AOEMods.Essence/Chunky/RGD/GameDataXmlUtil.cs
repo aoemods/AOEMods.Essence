@@ -1,4 +1,5 @@
-﻿using System.Security;
+﻿using System.Globalization;
+using System.Security;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -54,7 +55,13 @@ public static class GameDataXmlUtil
             }
             else
             {
-                stringBuilder.AppendFormat(" Value=\"{0}\" />", node.Value is string stringValue ? SecurityElement.Escape(stringValue) : node.Value);
+                stringBuilder.AppendFormat(" Value=\"{0}\" />", node.Value switch
+                {
+                    string s => SecurityElement.Escape(s),
+                    float f => f.ToString(CultureInfo.InvariantCulture),
+                    double d => d.ToString(CultureInfo.InvariantCulture),
+                    _ => node.Value,
+                });
             }
         }
 

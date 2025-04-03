@@ -48,6 +48,30 @@ public class ChunkyFileReader : BinaryReader
         return encoding.GetString(chars.ToArray());
     }
 
+    /// <summary>
+    /// Reads a zero-terminated wide-character string from the stream and advances
+    /// the stream's position.
+    /// </summary>
+    /// <returns>String that was read.</returns>
+    public string ReadCWString()
+    {
+        List<char> chars = new();
+        while (true)
+        {
+            char b = (char)ReadInt16();
+            if (b != 0)
+            {
+                chars.Add(b);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return new string(chars.ToArray(), 0, chars.Count);
+    }
+
     private IEnumerable<ChunkHeader> ReadChunkHeadersImpl(long? length = null)
     {
         long position = BaseStream.Position;
