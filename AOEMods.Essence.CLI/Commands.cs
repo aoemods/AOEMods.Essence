@@ -30,7 +30,7 @@ public static class Commands
         using var archiveFile = File.OpenRead(options.InputPath);
         var arch = Archive.FromStream(archiveFile);
 
-        var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
+        var fileNodes = arch.Tocs.Select(v => v.RootFolder).SelectMany(ArchiveNodeHelper.EnumerateChildren).OfType<IArchiveFileNode>();
 
         foreach (var fileNode in fileNodes)
         {
