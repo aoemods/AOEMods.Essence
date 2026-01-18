@@ -79,6 +79,14 @@ public class ArchiveFileNode : IArchiveFileNode
 
                     return decoded.ToArray();
                 }
+            case FileStorageType.Unknown18:
+                {
+                    //using var brotliStream = new BrotliStream(dataStream, CompressionMode.Decompress, leaveOpen: true);
+                    MemoryStream decoded = new((int)dataLength);
+                    dataStream.CopyTo(decoded);
+
+                    return decoded.ToArray();
+                }
             default:
                 throw new NotImplementedException($"Unknown storage type {storageType}");
         }

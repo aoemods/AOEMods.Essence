@@ -28,5 +28,10 @@ public enum FileStorageType : byte
     /// <summary>
     /// Stored compressed.
     /// </summary>
-    BufferCompressBrotli
+    BufferCompressBrotli,
+
+    /// <summary>
+    /// Stored compressed.
+    /// </summary>
+    Unknown18 = 18,
 }
