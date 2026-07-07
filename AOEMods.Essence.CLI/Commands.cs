@@ -30,26 +30,35 @@ public static class Commands
         using var archiveFile = File.OpenRead(options.InputPath);
         var arch = Archive.FromStream(archiveFile);
 
-        var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
-
-        foreach (var fileNode in fileNodes)
+        foreach (var toc in arch.Tocs)
         {
-            string fullName = fileNode.FullName;
-            if (options.Verbose)
+            // Prefix paths with the TOC name when there are multiple TOCs
+            // (e.g. attrib/data/info/locale in AoE4 archives) so they don't collide.
+            var tocOutputPath = arch.Tocs.Count > 1
+                ? Path.Join(options.OutputPath, toc.Name)
+                : options.OutputPath;
+
+            var fileNodes = ArchiveNodeHelper.EnumerateChildren(toc.RootFolder).OfType<IArchiveFileNode>();
+
+            foreach (var fileNode in fileNodes)
             {
-                Console.WriteLine(fullName);
+                string fullName = fileNode.FullName;
+                if (options.Verbose)
+                {
+                    Console.WriteLine(fullName);
+                }
+                var outputFilePath = Path.Join(tocOutputPath, fullName.Replace('\\', '/'));
+                if (options.Verbose)
+                {
+                    Console.WriteLine("Writing {0} to {1}", fileNode.FullName, outputFilePath);
+                }
+                var outputDirectory = Path.GetDirectoryName(outputFilePath);
+                if (outputDirectory != null)
+                {
+                    Directory.CreateDirectory(outputDirectory);
+                }
+                File.WriteAllBytes(outputFilePath, fileNode.GetData().ToArray());
             }
-            var outputFilePath = Path.Join(options.OutputPath, fullName.Replace('\\', '/'));
-            if (options.Verbose)
-            {
-                Console.WriteLine("Writing {0} to {1}", fileNode.FullName, outputFilePath);
-            }
-            var outputDirectory = Path.GetDirectoryName(outputFilePath);
-            if (outputDirectory != null)
-            {
-                Directory.CreateDirectory(outputDirectory);
-            }
-            File.WriteAllBytes(outputFilePath, fileNode.GetData().ToArray());
         }
 
         return 0;
