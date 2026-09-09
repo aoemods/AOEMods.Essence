@@ -83,6 +83,7 @@ public class RGDReader : IRGDReader
             RGDDataType.Int => reader.ReadInt32(),
             RGDDataType.Boolean => reader.ReadBoolean(),
             RGDDataType.CString => reader.ReadCString(),
+            RGDDataType.CWString => reader.ReadCWString(),
             RGDDataType.List or RGDDataType.List2 => ReadChunkyList(reader),
             _ => throw new Exception($"Unknown type {type}")
         };

@@ -306,6 +306,33 @@ public static class ExportArchiveUtil
         progressDialog.Show();
     }
 
+    public static bool? ShowExportArchiveNodeDialog(IEnumerable<IArchiveFolderNode> nodes, string title)
+    {
+        bool? dialogResult;
+
+        ExportFolderDialog dialog = new()
+        {
+            Title = title
+        };
+
+        dialogResult = dialog.ShowDialog();
+
+        if (dialogResult == true)
+        {
+            foreach (var node in nodes)
+            {
+                ExportArchiveNode(node, new ExportArchiveNodeOptions(
+                    dialog.ViewModel.OutputDirectoryPath,
+                    dialog.ViewModel.RRTexViewModel,
+                    dialog.ViewModel.RRGeomViewModel,
+                    dialog.ViewModel.RgdViewModel
+                ));
+            }
+        }
+
+        return dialogResult;
+    }
+
     public static bool? ShowExportArchiveNodeDialog(IArchiveNode node, string title)
     {
         bool? dialogResult;

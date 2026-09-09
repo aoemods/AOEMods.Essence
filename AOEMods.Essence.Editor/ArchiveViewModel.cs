@@ -61,7 +61,7 @@ namespace AOEMods.Essence.Editor
             if (Archive != null)
             {
                 ExportArchiveUtil.ShowExportArchiveNodeDialog(
-                    Archive.Tocs[0].RootFolder,
+                    Archive.Tocs.Select(v => v.RootFolder),
                     "Select a directory to unpack the archive into"
                 );
             }
@@ -94,7 +94,7 @@ namespace AOEMods.Essence.Editor
                 if (archive != null && archive.Tocs.Count > 0)
                 {
                     RootChildren = new ObservableCollection<ArchiveItemViewModel>(
-                        archive.Tocs[0].RootFolder.Children.Select(
+                        archive.Tocs.SelectMany(toc => toc.RootFolder.Children).Select(
                             child => new ArchiveItemViewModel(child, null)
                         )
                     );

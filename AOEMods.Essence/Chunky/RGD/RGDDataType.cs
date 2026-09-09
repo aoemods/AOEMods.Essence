@@ -22,6 +22,10 @@ public enum RGDDataType
     /// </summary>
     CString = 3,
     /// <summary>
+    /// Unknown 4 type
+    /// </summary>
+    CWString = 4,
+    /// <summary>
     /// List of more data.
     /// </summary>
     List = 100,
