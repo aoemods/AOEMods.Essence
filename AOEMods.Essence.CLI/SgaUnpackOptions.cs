@@ -13,5 +13,8 @@ public class SgaUnpackOptions
     public string OutputPath { get; set; }
     [Option('v', "verbose")]
     public bool Verbose { get; set; }
+
+    [Option('i', "include", Separator = ',', HelpText = "Only unpack files under these paths (comma separated, e.g. ui/images/civ_flags). Default: everything.")]
+    public IEnumerable<string> Include { get; set; }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

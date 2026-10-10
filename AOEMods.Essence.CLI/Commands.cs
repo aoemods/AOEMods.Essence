@@ -32,6 +32,22 @@ public static class Commands
 
         var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
 
+        // Matched against the path with forward slashes and without a leading one. Only matching
+        // files are read and decompressed, so a few folders out of a large archive are quick.
+        var include = (options.Include ?? Enumerable.Empty<string>())
+            .Select(prefix => prefix.Replace('\\', '/').Trim('/'))
+            .Where(prefix => prefix.Length > 0)
+            .ToArray();
+        if (include.Length > 0)
+        {
+            fileNodes = fileNodes.Where(fileNode =>
+            {
+                var name = fileNode.FullName.Replace('\\', '/').TrimStart('/');
+                return include.Any(prefix => name.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                    || name.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase));
+            });
+        }
+
         foreach (var fileNode in fileNodes)
         {
             string fullName = fileNode.FullName;
