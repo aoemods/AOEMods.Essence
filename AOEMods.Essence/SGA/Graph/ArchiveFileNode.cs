@@ -63,8 +63,11 @@ public class ArchiveFileNode : IArchiveFileNode
             case FileStorageType.StreamCompress:
             case FileStorageType.BufferCompress:
                 {
-                    dataStream.Position += 2;
-                    using var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress, leaveOpen: true);
+                    // Decompress from a buffer of exactly dataLength bytes, never from dataStream itself:
+                    // DeflateStream.CopyTo hands the whole underlying stream to the inflater and only
+                    // returns at its end, so every file read from here to the end of the archive.
+                    // The first 2 bytes are the zlib header.
+                    using var deflateStream = new DeflateStream(ReadCompressed(2), CompressionMode.Decompress);
                     MemoryStream decoded = new((int)dataUncompressedLength);
                     deflateStream.CopyTo(decoded);
 
@@ -73,7 +76,7 @@ public class ArchiveFileNode : IArchiveFileNode
             case FileStorageType.StreamCompressBrotli:
             case FileStorageType.BufferCompressBrotli:
                 {
-                    using var brotliStream = new BrotliStream(dataStream, CompressionMode.Decompress, leaveOpen: true);
+                    using var brotliStream = new BrotliStream(ReadCompressed(0), CompressionMode.Decompress);
                     MemoryStream decoded = new((int)dataUncompressedLength);
                     brotliStream.CopyTo(decoded);
 
@@ -82,5 +85,12 @@ public class ArchiveFileNode : IArchiveFileNode
             default:
                 throw new NotImplementedException($"Unknown storage type {storageType}");
         }
+    }
+
+    private MemoryStream ReadCompressed(int skip)
+    {
+        byte[] compressed = new byte[dataLength];
+        dataStream.ReadExactly(compressed);
+        return new MemoryStream(compressed, skip, compressed.Length - skip, writable: false);
     }
 }

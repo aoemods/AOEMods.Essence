@@ -173,9 +173,11 @@ public class RRTexReader : IRRTexReader
 
             if (tman.SizeCompressed[mip][j] != tman.SizeUncompressed[mip][j])
             {
-                byte[] zlibHeader = reader.ReadBytes(2);
+                // Only this chunk's bytes, after the 2 byte zlib header: DeflateStream.CopyTo would
+                // otherwise read the rest of the file for every chunk.
+                byte[] compressed = reader.ReadBytes((int)tman.SizeCompressed[mip][j]);
 
-                DeflateStream deflateStream = new DeflateStream(reader.BaseStream, CompressionMode.Decompress, true);
+                DeflateStream deflateStream = new DeflateStream(new MemoryStream(compressed, 2, compressed.Length - 2, writable: false), CompressionMode.Decompress);
                 MemoryStream inflatedStream = new MemoryStream();
                 deflateStream.CopyTo(inflatedStream);
 
